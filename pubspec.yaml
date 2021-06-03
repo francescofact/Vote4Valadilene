@@ -33,6 +33,7 @@ dependencies:
   rflutter_alert: ^2.0.2
   web3dart: any
   shared_preferences: any
+  steps: 1.0.1
 
 dev_dependencies:
   flutter_test:

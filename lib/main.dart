@@ -53,7 +53,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<DeployedContract> loadContract() async{
     String abi = await rootBundle.loadString("assets/abi.json");
-    String contractAddr = "0xf7CD734B34bb93FDE0E6ea8Db8f49c1A7aa25302";
+    String contractAddr = "0x82d048c0D39E5e5F33238030920317677Cb60A2e";
     debugPrint("creating deployed");
     final contract = DeployedContract(ContractAbi.fromJson(abi, "Mayor"), EthereumAddress.fromHex(contractAddr));
     debugPrint("created dc");
