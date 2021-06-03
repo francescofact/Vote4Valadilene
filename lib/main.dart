@@ -71,10 +71,11 @@ class _MyHomePageState extends State<MyHomePage> {
     return result;
   }
 
-  Future<List<int>> computeEnvelope() async{
+  Future<List<int>> _publishVote() async{
     List<dynamic> args = [BigInt.from(1234),true, BigInt.from(1000000000000000000)];
-    List<dynamic> result = await query("compute_envelope", args);
-    return result[0];
+    print(args);
+    List<dynamic> result = await query("cast_envelope", args);
+    print(result);
   }
 
   void _sendVote() async {
@@ -90,7 +91,7 @@ class _MyHomePageState extends State<MyHomePage> {
       return;
     }
 
-    computeEnvelope();
+    _publishVote();
     /*
     ethClient.sendTransaction(
       credentials,

@@ -72,13 +72,15 @@ contract Mayor {
 
 
     /// @notice Store a received voting envelope
-    /// @param _envelope The envelope represented as the keccak256 hash of (sigil, doblon, soul) 
-    function cast_envelope(bytes32 _envelope) canVote public {
-        
+    /// @param _sigil (uint) The secret sigil of a voter
+    /// @param _doblon (bool) The voting preference
+    /// @param _soul (uint) The soul associated to the vote
+    function cast_envelope(uint _sigil, bool _doblon, uint _soul) canVote public {
+
         if(envelopes[msg.sender] == 0x0) // => NEW, update on 17/05/2021
             voting_condition.envelopes_casted++;
 
-        envelopes[msg.sender] = _envelope;
+        envelopes[msg.sender] = compute_envelope(_sigil, _doblon, _soul);
         emit EnvelopeCast(msg.sender);
     }
     
@@ -147,7 +149,7 @@ contract Mayor {
     /// @param _sigil (uint) The secret sigil of a voter
     /// @param _doblon (bool) The voting preference
     /// @param _soul (uint) The soul associated to the vote
-    function compute_envelope(uint _sigil, bool _doblon, uint _soul) public pure returns(bytes32) {
+    function compute_envelope(uint _sigil, bool _doblon, uint _soul) private pure returns(bytes32) {
         return keccak256(abi.encode(_sigil, _doblon, _soul));
     }
     

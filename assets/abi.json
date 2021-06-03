@@ -100,19 +100,6 @@
   {
     "inputs": [
       {
-        "internalType": "bytes32",
-        "name": "_envelope",
-        "type": "bytes32"
-      }
-    ],
-    "name": "cast_envelope",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
         "internalType": "uint256",
         "name": "_sigil",
         "type": "uint256"
@@ -128,15 +115,9 @@
         "type": "uint256"
       }
     ],
-    "name": "compute_envelope",
-    "outputs": [
-      {
-        "internalType": "bytes32",
-        "name": "",
-        "type": "bytes32"
-      }
-    ],
-    "stateMutability": "pure",
+    "name": "cast_envelope",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
