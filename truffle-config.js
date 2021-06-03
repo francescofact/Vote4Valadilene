@@ -10,6 +10,7 @@ module.exports = {
 
   compilers: {
     solc: {
+        version: "0.8.1",
         optimizer: {
           enabled: false,
           runs: 200

@@ -1,11 +1,21 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:jdenticon_dart/jdenticon_dart.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 
+import 'package:web3dart/web3dart.dart';
+import 'package:http/http.dart';
+
+import 'login.dart';
+import 'splash.dart';
+
 void main() {
   runApp(MyApp());
 }
+
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
@@ -17,25 +27,57 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.indigo,
       ),
-      home: MyHomePage(title: 'Vote4Valadilène'),
+      home: SplashScreen(),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key? key, required this.title}) : super(key: key);
-
-  final String title;
-
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final candidates = ["0x2e53da5f0e9149f6c5c441cbc56d5a31e989949e", "0x3dcb1bdfa4698b0f8b96d8e5c875fbd75100f77a", "0x0d0592b3aecb3f9ba4d2cffa30545544a69a1311"];
+  Client httpClient;
+  Web3Client ethClient;
+  final candidates = ["0x19226bC2662a4Bb77e9C920cE27D3a3016c9a910", "0x2F11fe2AfEa033Bc56e80e18321ea16F6D65cA02", "0xe39606920F4892D99a3C34E602baF56EaEDCE824"];
   int _selected = -1;
 
-  void sendVote(){
+  @override
+  void initState(){
+    super.initState();
+    httpClient = new Client();
+    String apiUrl = "http://localhost:7545"; //Replace with your APIvar httpClient = new Client();
+    ethClient = new Web3Client(apiUrl, httpClient);
+  }
+
+  Future<DeployedContract> loadContract() async{
+    String abi = await rootBundle.loadString("assets/abi.json");
+    String contractAddr = "0xf7CD734B34bb93FDE0E6ea8Db8f49c1A7aa25302";
+    debugPrint("creating deployed");
+    final contract = DeployedContract(ContractAbi.fromJson(abi, "Mayor"), EthereumAddress.fromHex(contractAddr));
+    debugPrint("created dc");
+    return contract;
+  }
+
+  Future<List<dynamic>> query(String fun, List<dynamic> args) async {
+    debugPrint("Preparing for query");
+    final contract = await loadContract();
+    debugPrint("creating fun");
+    final ethFun = contract.function(fun);
+
+    debugPrint("Querying...");
+    final result = await ethClient.call(contract: contract, function: ethFun, params: args);
+    return result;
+  }
+
+  Future<List<int>> computeEnvelope() async{
+    List<dynamic> args = [BigInt.from(1234),true, BigInt.from(1000000000000000000)];
+    List<dynamic> result = await query("compute_envelope", args);
+    return result[0];
+  }
+
+  void _sendVote() async {
     AlertStyle animation = AlertStyle(animationType: AnimationType.grow);
     if (_selected == -1){
       Alert(
@@ -47,30 +89,34 @@ class _MyHomePageState extends State<MyHomePage> {
       ).show();
       return;
     }
-    Alert(
-      context: context,
-      type: AlertType.success,
-      title: "SENT!",
-      desc: "Your vote has been successfully sent!",
-      buttons: [
-        DialogButton(
-          child: Text(
-            "Okay",
-            style: TextStyle(color: Colors.white, fontSize: 20),
-          ),
-          onPressed: () => Navigator.pop(context),
-          color: Color.fromRGBO(0, 179, 134, 1.0),
-        ),
-      ],
-      style: animation
-    ).show();
+
+    computeEnvelope();
+    /*
+    ethClient.sendTransaction(
+      credentials,
+      Transaction(
+        to: EthereumAddress.fromHex(candidates[_selected]),
+        gasPrice: EtherAmount.inWei(BigInt.one),
+        maxGas: 100000,
+        value: EtherAmount.fromUnitAndValue(EtherUnit.ether, 1),
+      ),
+    ).then((value) => {
+      Alert(
+        context: context,
+        type: AlertType.success,
+        title:"Sent",
+        desc: "The vote has been casted!",
+        style: animation
+      ).show()
+    });
+    */
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.title),
+        title: Text("Vote4Valadilène"),
       ),
       body: Center(
         child: Container(
@@ -121,9 +167,20 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
               ElevatedButton(
-                  onPressed: sendVote,
+                  onPressed: _sendVote,
                   child: Text(
-                    "Send Vote"
+                      "Send Vote"
+                  )
+              ),
+              ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => LoginScreen()),
+                    );
+                  },
+                  child: Text(
+                      "Login"
                   )
               ),
             ],
