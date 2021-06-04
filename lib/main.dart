@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:jdenticon_dart/jdenticon_dart.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:progress_indicator_button/progress_button.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -41,9 +42,9 @@ class _MyHomePageState extends State<MyHomePage> {
   Client httpClient;
   Web3Client ethClient;
   Credentials creds;
-  String abi;
+  DeployedContract contract;
 
-  String contractAddr = "0x858F4fCc9f2AFed49ca1DDA5C087f457bA1F6a60";
+  String contractAddr = "0x18Bca6d0e0755B4575fe4F6746F540bd9De867B5";
   final candidates = ["0x19226bC2662a4Bb77e9C920cE27D3a3016c9a910", "0x2F11fe2AfEa033Bc56e80e18321ea16F6D65cA02", "0xe39606920F4892D99a3C34E602baF56EaEDCE824"];
   int _selected = -1;
 
@@ -55,7 +56,7 @@ class _MyHomePageState extends State<MyHomePage> {
     ethClient = new Web3Client(apiUrl, httpClient);
 
     rootBundle.loadString("assets/abi.json").then((value) => {
-      abi = value
+      contract = loadContract(value)
     });
 
     SharedPreferences.getInstance().then((prefs) => {
@@ -63,29 +64,59 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  DeployedContract loadContract(){
-    debugPrint("creating deployed");
+  DeployedContract loadContract(String abi){
     final contract = DeployedContract(ContractAbi.fromJson(abi, "Mayor"), EthereumAddress.fromHex(contractAddr));
-    debugPrint("created dc");
     return contract;
   }
 
-  Future<List<dynamic>> query(String fun, List<dynamic> args) async {
-    debugPrint("Preparing for query");
-    final contract = loadContract();
-    debugPrint("creating fun");
-    final ethFun = contract.function(fun);
-
-    debugPrint("Querying...");
-    final result = await ethClient.call(contract: contract, function: ethFun, params: args);
-    return result;
+  Future<void> query(String fun, List<dynamic> args, {int wei=0}) async {
+    return ethClient.sendTransaction(creds, Transaction.callContract(
+      contract: contract,
+      function: contract.function(fun),
+      parameters: args,
+      value: EtherAmount.inWei(BigInt.from(wei)),
+      maxGas: 999999,
+    ));
   }
 
-  Future<List<int>> _publishVote() async{
+  Future<List<int>> _openVote() async{
+    List<dynamic> args = [BigInt.from(1234),true];
+
+    try {
+      await query("open_envelope", args, wei:1000000000000000000);
+      Alert(
+          context: context,
+          type: AlertType.success,
+          title:"Voted",
+          desc: "Your Vote has been "
+      ).show();
+    } catch (error) {
+      Alert(
+          context: context,
+          type: AlertType.error,
+          title:"Error",
+          desc: error.toString()
+      ).show();
+    }
+
+  }
+
+  Future<void> _sendVote() async {
+    AlertStyle animation = AlertStyle(animationType: AnimationType.grow);
+    if (_selected == -1){
+      Alert(
+          context: context,
+          type: AlertType.error,
+          title:"Error",
+          desc: "Please select the major you want to vote",
+          style: animation
+      ).show();
+      return;
+    }
+
     List<dynamic> args = [BigInt.from(1234), true, BigInt.from(1000000000000000000)];
     try {
-      List<dynamic> result = await query("cast_envelope", args);
-      print(result);
+      await query("cast_envelope", args);
       Alert(
           context: context,
           type: AlertType.success,
@@ -100,64 +131,13 @@ class _MyHomePageState extends State<MyHomePage> {
           desc: error.toString()
       ).show();
     }
-  }
-
-  Future<List<int>> _openVote() async{
-    DeployedContract contract = loadContract();
-    List<dynamic> args = [BigInt.from(1234),true];
-
-    try {
-      await ethClient.sendTransaction(creds, Transaction.callContract(
-        contract: contract,
-        function: contract.function("open_envelope"),
-        parameters: args,
-        value: EtherAmount.inWei(BigInt.from(1000000000000000000)),
-        maxGas: 999999,
-      ));
-    } catch (error) {
-      Alert(
-          context: context,
-          type: AlertType.error,
-          title:"Error",
-          desc: error.toString()
-      ).show();
-    }
 
   }
 
-  void _sendVote() async {
-    AlertStyle animation = AlertStyle(animationType: AnimationType.grow);
-    if (_selected == -1){
-      Alert(
-          context: context,
-          type: AlertType.error,
-          title:"Error",
-          desc: "Please select the major you want to vote",
-          style: animation
-      ).show();
-      return;
-    }
-
-    _publishVote();
-    /*
-    ethClient.sendTransaction(
-      credentials,
-      Transaction(
-        to: EthereumAddress.fromHex(candidates[_selected]),
-        gasPrice: EtherAmount.inWei(BigInt.one),
-        maxGas: 100000,
-        value: EtherAmount.fromUnitAndValue(EtherUnit.ether, 1),
-      ),
-    ).then((value) => {
-      Alert(
-        context: context,
-        type: AlertType.success,
-        title:"Sent",
-        desc: "The vote has been casted!",
-        style: animation
-      ).show()
-    });
-    */
+  void loader(AnimationController controller, Function f) async{
+    controller.forward();
+    await f();
+    controller.reset();
   }
 
   @override
@@ -226,6 +206,20 @@ class _MyHomePageState extends State<MyHomePage> {
                       "Open"
                   )
               ),
+              ProgressButton(
+                borderRadius: BorderRadius.all(Radius.circular(8)),
+                strokeWidth: 2,
+                child: Text(
+                  "Vote",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                  ),
+                ),
+                onPressed: (AnimationController controller) async {
+                  await loader(controller, _sendVote);
+                }
+              )
             ],
           ),
         ),
