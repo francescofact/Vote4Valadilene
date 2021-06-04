@@ -27,7 +27,7 @@ class _SplashScreenState extends State<SplashScreen> {
         setState(() {
           Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => FlowScreen()),
+            MaterialPageRoute(builder: (context) => LoginScreen()),
                 (Route<dynamic> route) => false,
           );
         });
@@ -35,7 +35,7 @@ class _SplashScreenState extends State<SplashScreen> {
         setState(() {
           Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (context) => MyHomePage()),
+            MaterialPageRoute(builder: (context) => FlowScreen()),
                 (Route<dynamic> route) => false,
           );
         });

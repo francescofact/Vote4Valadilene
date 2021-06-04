@@ -82,6 +82,7 @@ contract Mayor {
 
         envelopes[msg.sender] = compute_envelope(_sigil, _doblon, _soul);
         emit EnvelopeCast(msg.sender);
+        
     }
     
     

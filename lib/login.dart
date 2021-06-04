@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 
-import 'main.dart';
+import 'flow.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -22,7 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() {
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => MyHomePage()),
+        MaterialPageRoute(builder: (context) => FlowScreen()),
             (Route<dynamic> route) => false,
       );
     });

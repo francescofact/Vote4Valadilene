@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:steps/steps.dart';
 import 'package:v4v/main.dart';
 
@@ -9,6 +10,39 @@ class FlowScreen extends StatefulWidget {
 }
 
 class _FlowScreenState extends State<FlowScreen> {
+  AlertStyle animation = AlertStyle(animationType: AnimationType.grow);
+
+  void _freezeVote(){
+    Alert(
+      context: context,
+      type: AlertType.warning,
+      title: "Are you sure?",
+      desc: "Once you confirm your vote you cannot change it",
+      style: animation,
+      buttons: [
+        DialogButton(
+          child: Text(
+            "Confirm",
+            style: TextStyle(color: Colors.white, fontSize: 20),
+          ),
+          onPressed: () => {
+
+            Navigator.pop(context)
+          },
+          color: Color.fromRGBO(0, 179, 134, 1.0),
+        ),
+        DialogButton(
+          child: Text(
+            "Cancel",
+            style: TextStyle(color: Colors.white, fontSize: 20),
+          ),
+          onPressed: () => Navigator.pop(context),
+          color: Colors.red,
+        )
+      ],
+    ).show();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -65,10 +99,7 @@ class _FlowScreenState extends State<FlowScreen> {
                     ),
                     SizedBox(height:20.0),
                     ElevatedButton(
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => MyHomePage()),
-                        ),
+                        onPressed: _freezeVote,
                         child: Text("Confirm")
                     )
                   ],

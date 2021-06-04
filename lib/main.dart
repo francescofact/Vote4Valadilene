@@ -5,11 +5,11 @@ import 'package:flutter/services.dart';
 import 'package:jdenticon_dart/jdenticon_dart.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:web3dart/web3dart.dart';
 import 'package:http/http.dart';
 
-import 'login.dart';
 import 'splash.dart';
 
 void main() {
@@ -40,6 +40,10 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   Client httpClient;
   Web3Client ethClient;
+  Credentials creds;
+  String abi;
+
+  String contractAddr = "0x858F4fCc9f2AFed49ca1DDA5C087f457bA1F6a60";
   final candidates = ["0x19226bC2662a4Bb77e9C920cE27D3a3016c9a910", "0x2F11fe2AfEa033Bc56e80e18321ea16F6D65cA02", "0xe39606920F4892D99a3C34E602baF56EaEDCE824"];
   int _selected = -1;
 
@@ -49,11 +53,17 @@ class _MyHomePageState extends State<MyHomePage> {
     httpClient = new Client();
     String apiUrl = "http://localhost:7545"; //Replace with your APIvar httpClient = new Client();
     ethClient = new Web3Client(apiUrl, httpClient);
+
+    rootBundle.loadString("assets/abi.json").then((value) => {
+      abi = value
+    });
+
+    SharedPreferences.getInstance().then((prefs) => {
+      creds = EthPrivateKey.fromHex(prefs.getString('key'))
+    });
   }
 
-  Future<DeployedContract> loadContract() async{
-    String abi = await rootBundle.loadString("assets/abi.json");
-    String contractAddr = "0x82d048c0D39E5e5F33238030920317677Cb60A2e";
+  DeployedContract loadContract(){
     debugPrint("creating deployed");
     final contract = DeployedContract(ContractAbi.fromJson(abi, "Mayor"), EthereumAddress.fromHex(contractAddr));
     debugPrint("created dc");
@@ -62,7 +72,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   Future<List<dynamic>> query(String fun, List<dynamic> args) async {
     debugPrint("Preparing for query");
-    final contract = await loadContract();
+    final contract = loadContract();
     debugPrint("creating fun");
     final ethFun = contract.function(fun);
 
@@ -72,10 +82,47 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<List<int>> _publishVote() async{
-    List<dynamic> args = [BigInt.from(1234),true, BigInt.from(1000000000000000000)];
-    print(args);
-    List<dynamic> result = await query("cast_envelope", args);
-    print(result);
+    List<dynamic> args = [BigInt.from(1234), true, BigInt.from(1000000000000000000)];
+    try {
+      List<dynamic> result = await query("cast_envelope", args);
+      print(result);
+      Alert(
+          context: context,
+          type: AlertType.success,
+          title:"OK",
+          desc: "Your vote has been casted!"
+      ).show();
+    } catch(error) {
+      Alert(
+          context: context,
+          type: AlertType.error,
+          title:"Error",
+          desc: error.toString()
+      ).show();
+    }
+  }
+
+  Future<List<int>> _openVote() async{
+    DeployedContract contract = loadContract();
+    List<dynamic> args = [BigInt.from(1234),true];
+
+    try {
+      await ethClient.sendTransaction(creds, Transaction.callContract(
+        contract: contract,
+        function: contract.function("open_envelope"),
+        parameters: args,
+        value: EtherAmount.inWei(BigInt.from(1000000000000000000)),
+        maxGas: 999999,
+      ));
+    } catch (error) {
+      Alert(
+          context: context,
+          type: AlertType.error,
+          title:"Error",
+          desc: error.toString()
+      ).show();
+    }
+
   }
 
   void _sendVote() async {
@@ -146,21 +193,21 @@ class _MyHomePageState extends State<MyHomePage> {
                             ? Colors.indigoAccent
                             : Colors.white,
                         child: ListTile(
-                            leading: ExcludeSemantics(
-                              child: SvgPicture.string(
-                                Jdenticon.toSvg("${candidates[index]}"),
-                                fit: BoxFit.fill,
-                                height: 50,
-                                width: 50,
-                              ),
+                          leading: ExcludeSemantics(
+                            child: SvgPicture.string(
+                              Jdenticon.toSvg("${candidates[index]}"),
+                              fit: BoxFit.fill,
+                              height: 50,
+                              width: 50,
                             ),
-                            title: Text(
-                                "${candidates[index]}",
-                                style: TextStyle(color: (_selected == index)
-                                    ? Colors.white
-                                    : Colors.black,
-                                )
-                            ),
+                          ),
+                          title: Text(
+                              "${candidates[index]}",
+                              style: TextStyle(color: (_selected == index)
+                                  ? Colors.white
+                                  : Colors.black,
+                              )
+                          ),
                         ),
                       ),
                     );
@@ -174,14 +221,9 @@ class _MyHomePageState extends State<MyHomePage> {
                   )
               ),
               ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => LoginScreen()),
-                    );
-                  },
+                  onPressed: _openVote,
                   child: Text(
-                      "Login"
+                      "Open"
                   )
               ),
             ],
@@ -189,5 +231,6 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
     );
+
   }
 }
