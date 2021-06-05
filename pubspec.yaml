@@ -34,7 +34,7 @@ dependencies:
   web3dart: any
   shared_preferences: any
   steps: 1.0.1
-  flutter_launcher_icons: any
+  progress_indicator_button: any
 
 
 dev_dependencies:

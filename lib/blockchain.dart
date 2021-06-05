@@ -17,7 +17,6 @@ class Blockchain {
     httpClient = new Client();
     String apiUrl = "http://localhost:7545";
     ethClient = new Web3Client(apiUrl, httpClient);
-
     rootBundle.loadString("assets/abi.json").then((value) => {
       contract = loadContract(value)
     });
@@ -48,5 +47,21 @@ class Blockchain {
       return err.split(": revert")[1].replaceAll('".', "");
 
     return err;
+  }
+
+  Future<bool> check() async{
+    //check if connection is available
+    try {
+      await ethClient.getBlockNumber();
+      return true;
+    } catch (error){
+      return false;
+    }
+  }
+
+  void logout(){
+    SharedPreferences.getInstance().then((prefs) => {
+      prefs.remove('key')
+    });
   }
 }

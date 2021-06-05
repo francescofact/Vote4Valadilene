@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:rflutter_alert/rflutter_alert.dart';
+import 'package:v4v/splash.dart';
+import 'package:v4v/utils.dart';
 
-import 'flow.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -11,7 +11,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
 
-  TextStyle style = TextStyle(fontFamily: 'Montserrat', fontSize: 20.0);
+  TextStyle style = TextStyle(fontFamily: 'Montserrat', fontSize: 20.0, color: Colors.white);
   final keyController = TextEditingController();
 
   Future<void> _login() async{
@@ -22,8 +22,10 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() {
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => FlowScreen()),
-            (Route<dynamic> route) => false,
+        SlideRightRoute(
+            page: SplashScreen()
+        ),
+          (Route<dynamic> route) => false,
       );
     });
   }
@@ -36,15 +38,18 @@ class _LoginScreenState extends State<LoginScreen> {
       obscureText: true,
       style: style,
       decoration: InputDecoration(
-          contentPadding: EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
-          hintText: "Wallet Private Key",
-          border:
-          OutlineInputBorder(borderRadius: BorderRadius.circular(32.0))),
+        contentPadding: EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
+        hintText: "Wallet Private Key",
+        hintStyle: style,
+        border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(32.0)
+          )
+      ),
     );
     final loginButton = Material(
       elevation: 5.0,
       borderRadius: BorderRadius.circular(30.0),
-      color: Color(0xff01A0C7),
+      color: Colors.indigoAccent,
       child: MaterialButton(
         minWidth: MediaQuery.of(context).size.width,
         padding: EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
@@ -59,7 +64,16 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       body: Center(
         child: Container(
-          color: Colors.white,
+          decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter,
+                colors: [
+                  Color(0xFFd75dfd),
+                  Color(0xFF675bd4),
+                ],
+              )
+          ),
           child: Padding(
             padding: const EdgeInsets.all(36.0),
             child: Column(

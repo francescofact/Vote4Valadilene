@@ -1,15 +1,8 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:jdenticon_dart/jdenticon_dart.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:v4v/blockchain.dart';
-
-import 'package:web3dart/web3dart.dart';
-import 'package:http/http.dart';
 
 import 'splash.dart';
 
@@ -28,6 +21,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.indigo,
       ),
+      debugShowCheckedModeBanner: false,
       home: SplashScreen(),
     );
   }
@@ -84,7 +78,9 @@ class _MyHomePageState extends State<MyHomePage> {
             context: context,
             type: AlertType.error,
             title:"Error",
-            desc: blockchain.translateError(error)
+            desc: (error is NoSuchMethodError)
+                ? error.toString()
+                : blockchain.translateError(error)
         ).show();
       })
     });
@@ -94,8 +90,25 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text("Vote4Valadilène"),
+      appBar: PreferredSize(
+        child: Container(
+          child: AppBar(
+            title: Text("Vote4Valadilene"),
+            backgroundColor: Colors.transparent,
+            elevation: 0.0,
+          ),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.bottomCenter,
+              end: Alignment.topCenter,
+              colors: [
+                Color(0xFF8b5be1),
+                Color(0xFF675bd4),
+              ],
+            ),
+          ),
+        ),
+        preferredSize:  Size(MediaQuery.of(context).size.width, 45),
       ),
       body: Center(
         child: Container(
