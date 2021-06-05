@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:steps/steps.dart';
+import 'package:v4v/blockchain.dart';
 import 'package:v4v/main.dart';
 
 class FlowScreen extends StatefulWidget {
@@ -10,7 +11,45 @@ class FlowScreen extends StatefulWidget {
 }
 
 class _FlowScreenState extends State<FlowScreen> {
+  Blockchain blockchain = Blockchain();
   AlertStyle animation = AlertStyle(animationType: AnimationType.grow);
+
+
+
+  Future<void> _openVote() async {
+    List<dynamic> args = [BigInt.from(1234), true];
+    Alert(
+        context: context,
+        title:"Confirming your vote...",
+        buttons: [],
+        style: AlertStyle(
+          animationType: AnimationType.grow,
+          isCloseButton: false,
+          isOverlayTapDismiss: false,
+        )
+    ).show();
+    Future.delayed(Duration(milliseconds:500), () => {
+      blockchain.query("open_envelope", args, wei:1000000000000000000).then((value) => {
+        Navigator.of(context).pop(),
+        Alert(
+            context: context,
+            type: AlertType.success,
+            title:"OK",
+            desc: "Your vote has been casted!",
+            style: animation
+        ).show()
+      }).catchError((error){
+        Navigator.of(context).pop();
+        Alert(
+            context: context,
+            type: AlertType.error,
+            title:"Error",
+            desc: error.toString(),
+          style: animation
+        ).show();
+      })
+    });
+  }
 
   void _freezeVote(){
     Alert(
@@ -26,8 +65,8 @@ class _FlowScreenState extends State<FlowScreen> {
             style: TextStyle(color: Colors.white, fontSize: 20),
           ),
           onPressed: () => {
-
-            Navigator.pop(context)
+            Navigator.pop(context),
+            _openVote(),
           },
           color: Color.fromRGBO(0, 179, 134, 1.0),
         ),
@@ -94,7 +133,7 @@ class _FlowScreenState extends State<FlowScreen> {
                       style: TextStyle(fontSize: 22.0),
                     ),
                     Text(
-                      'If you confirm your vote it became valid and unchangable',
+                      'When the quorum is reached you can confirm your vote',
                       style: TextStyle(fontSize: 12.0),
                     ),
                     SizedBox(height:20.0),

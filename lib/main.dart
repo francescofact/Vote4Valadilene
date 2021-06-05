@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:jdenticon_dart/jdenticon_dart.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:progress_indicator_button/progress_button.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:v4v/blockchain.dart';
 
 import 'package:web3dart/web3dart.dart';
 import 'package:http/http.dart';
@@ -39,67 +39,10 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  Client httpClient;
-  Web3Client ethClient;
-  Credentials creds;
-  DeployedContract contract;
+  Blockchain blockchain = Blockchain();
 
-  String contractAddr = "0x18Bca6d0e0755B4575fe4F6746F540bd9De867B5";
   final candidates = ["0x19226bC2662a4Bb77e9C920cE27D3a3016c9a910", "0x2F11fe2AfEa033Bc56e80e18321ea16F6D65cA02", "0xe39606920F4892D99a3C34E602baF56EaEDCE824"];
   int _selected = -1;
-
-  @override
-  void initState(){
-    super.initState();
-    httpClient = new Client();
-    String apiUrl = "http://localhost:7545"; //Replace with your APIvar httpClient = new Client();
-    ethClient = new Web3Client(apiUrl, httpClient);
-
-    rootBundle.loadString("assets/abi.json").then((value) => {
-      contract = loadContract(value)
-    });
-
-    SharedPreferences.getInstance().then((prefs) => {
-      creds = EthPrivateKey.fromHex(prefs.getString('key'))
-    });
-  }
-
-  DeployedContract loadContract(String abi){
-    final contract = DeployedContract(ContractAbi.fromJson(abi, "Mayor"), EthereumAddress.fromHex(contractAddr));
-    return contract;
-  }
-
-  Future<void> query(String fun, List<dynamic> args, {int wei=0}) async {
-    return ethClient.sendTransaction(creds, Transaction.callContract(
-      contract: contract,
-      function: contract.function(fun),
-      parameters: args,
-      value: EtherAmount.inWei(BigInt.from(wei)),
-      maxGas: 999999,
-    ));
-  }
-
-  Future<List<int>> _openVote() async{
-    List<dynamic> args = [BigInt.from(1234),true];
-
-    try {
-      await query("open_envelope", args, wei:1000000000000000000);
-      Alert(
-          context: context,
-          type: AlertType.success,
-          title:"Voted",
-          desc: "Your Vote has been "
-      ).show();
-    } catch (error) {
-      Alert(
-          context: context,
-          type: AlertType.error,
-          title:"Error",
-          desc: error.toString()
-      ).show();
-    }
-
-  }
 
   Future<void> _sendVote() async {
     AlertStyle animation = AlertStyle(animationType: AnimationType.grow);
@@ -114,31 +57,39 @@ class _MyHomePageState extends State<MyHomePage> {
       return;
     }
 
+
     List<dynamic> args = [BigInt.from(1234), true, BigInt.from(1000000000000000000)];
-    try {
-      await query("cast_envelope", args);
-      Alert(
-          context: context,
-          type: AlertType.success,
-          title:"OK",
-          desc: "Your vote has been casted!"
-      ).show();
-    } catch(error) {
-      Alert(
-          context: context,
-          type: AlertType.error,
-          title:"Error",
-          desc: error.toString()
-      ).show();
-    }
-
+    Alert(
+      context: context,
+      title:"Sending your vote...",
+      buttons: [],
+      style: AlertStyle(
+        animationType: AnimationType.grow,
+        isCloseButton: false,
+        isOverlayTapDismiss: false,
+      )
+    ).show();
+    Future.delayed(Duration(milliseconds:500), () => {
+      blockchain.query("cast_envelope", args).then((value) => {
+        Navigator.of(context).pop(),
+        Alert(
+            context: context,
+            type: AlertType.success,
+            title:"OK",
+            desc: "Your vote has been casted!"
+        ).show()
+      }).catchError((error){
+        Navigator.of(context).pop();
+        Alert(
+            context: context,
+            type: AlertType.error,
+            title:"Error",
+            desc: error.toString()
+        ).show();
+      })
+    });
   }
 
-  void loader(AnimationController controller, Function f) async{
-    controller.forward();
-    await f();
-    controller.reset();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -200,26 +151,6 @@ class _MyHomePageState extends State<MyHomePage> {
                       "Send Vote"
                   )
               ),
-              ElevatedButton(
-                  onPressed: _openVote,
-                  child: Text(
-                      "Open"
-                  )
-              ),
-              ProgressButton(
-                borderRadius: BorderRadius.all(Radius.circular(8)),
-                strokeWidth: 2,
-                child: Text(
-                  "Vote",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                  ),
-                ),
-                onPressed: (AnimationController controller) async {
-                  await loader(controller, _sendVote);
-                }
-              )
             ],
           ),
         ),

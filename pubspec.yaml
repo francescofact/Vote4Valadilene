@@ -34,7 +34,6 @@ dependencies:
   web3dart: any
   shared_preferences: any
   steps: 1.0.1
-  progress_indicator_button: any
 
 dev_dependencies:
   flutter_test:
