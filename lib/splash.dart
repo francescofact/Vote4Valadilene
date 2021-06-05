@@ -49,9 +49,17 @@ class _SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       body: Center(
         child: Container(
-          color: Colors.white,
-          child: Padding(
-            padding: const EdgeInsets.all(36.0),
+          decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.bottomCenter,
+                end: Alignment.topCenter,
+                colors: [
+                  Color(0xFFd75dfd),
+                  Color(0xFF675bd4),
+                ],
+              )
+          ),
+          child: Center(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.center,
@@ -59,18 +67,18 @@ class _SplashScreenState extends State<SplashScreen> {
                 SizedBox(
                   height: 155.0,
                   child: Image.asset(
-                    'assets/wallet.png'
+                    'assets/vote.png'
                   ),
                 ),
                 SizedBox(height: 25.0),
                 Text(
                   "Vote4Valadiene",
-                  style: TextStyle(fontSize: 40),
+                  style: TextStyle(fontSize: 40, color: Colors.white),
                 ),
                 SizedBox(height: 25.0),
               ],
             ),
-          ),
+         ),
         ),
       ),
     );

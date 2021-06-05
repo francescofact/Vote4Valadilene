@@ -2,7 +2,7 @@
     package="com.valadien.vote.v4v">
    <application
         android:label="v4v"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/launcher_icon">
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"
