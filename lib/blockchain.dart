@@ -2,6 +2,7 @@
 import 'package:http/http.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:web3dart/json_rpc.dart';
 import 'package:web3dart/web3dart.dart';
 
 class Blockchain {
@@ -39,5 +40,13 @@ class Blockchain {
       value: EtherAmount.inWei(BigInt.from(wei)),
       maxGas: 999999,
     ));
+  }
+
+  String translateError(RPCError error){
+    String err = error.toString();
+    if (err.contains(": revert"))
+      return err.split(": revert")[1].replaceAll('".', "");
+
+    return err;
   }
 }

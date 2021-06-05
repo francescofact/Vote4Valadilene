@@ -44,7 +44,7 @@ class _FlowScreenState extends State<FlowScreen> {
             context: context,
             type: AlertType.error,
             title:"Error",
-            desc: error.toString(),
+            desc: blockchain.translateError(error),
           style: animation
         ).show();
       })

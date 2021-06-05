@@ -84,7 +84,7 @@ class _MyHomePageState extends State<MyHomePage> {
             context: context,
             type: AlertType.error,
             title:"Error",
-            desc: error.toString()
+            desc: blockchain.translateError(error)
         ).show();
       })
     });
