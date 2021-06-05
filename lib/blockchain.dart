@@ -15,7 +15,7 @@ class Blockchain {
 
   Blockchain(){
     httpClient = new Client();
-    String apiUrl = "http://localhost:7545"; //Replace with your APIvar httpClient = new Client();
+    String apiUrl = "http://localhost:7545";
     ethClient = new Web3Client(apiUrl, httpClient);
 
     rootBundle.loadString("assets/abi.json").then((value) => {
