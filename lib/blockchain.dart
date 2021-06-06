@@ -7,7 +7,7 @@ import 'package:web3dart/web3dart.dart';
 
 class Blockchain {
 
-  final String contractAddr = "0x18Bca6d0e0755B4575fe4F6746F540bd9De867B5";
+  final String contractAddr = "0x9EBE22614E021869096e345C098679aCf7E85F2D";
   Client httpClient;
   Web3Client ethClient;
   Credentials creds;
@@ -15,7 +15,7 @@ class Blockchain {
 
   Blockchain(){
     httpClient = new Client();
-    String apiUrl = "http://localhost:7545";
+    String apiUrl = "http://www.francescofattori.it:7545";
     ethClient = new Web3Client(apiUrl, httpClient);
     rootBundle.loadString("assets/abi.json").then((value) => {
       contract = loadContract(value)
@@ -29,6 +29,15 @@ class Blockchain {
   DeployedContract loadContract(String abi){
     final contract = DeployedContract(ContractAbi.fromJson(abi, "Mayor"), EthereumAddress.fromHex(contractAddr));
     return contract;
+  }
+
+  Future<List<dynamic>> queryView(String fun, List<dynamic> args) async {
+    return ethClient.call(
+      sender: await creds.extractAddress(),
+      contract: contract,
+      function: contract.function('get_quorum'),
+      params: const [],
+    );
   }
 
   Future<void> query(String fun, List<dynamic> args, {int wei=0}) async {
@@ -45,7 +54,8 @@ class Blockchain {
     String err = error.toString();
     if (err.contains(": revert"))
       return err.split(": revert")[1].replaceAll('".', "");
-
+    if (err.contains("with msg \""))
+      return err.split("msg \"")[1].replaceAll('".', "");
     return err;
   }
 

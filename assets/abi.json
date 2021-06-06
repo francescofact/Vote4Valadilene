@@ -135,6 +135,24 @@
   },
   {
     "inputs": [],
+    "name": "get_quorum",
+    "outputs": [
+      {
+        "internalType": "uint32",
+        "name": "",
+        "type": "uint32"
+      },
+      {
+        "internalType": "uint32",
+        "name": "",
+        "type": "uint32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "mayor_or_sayonara",
     "outputs": [],
     "stateMutability": "nonpayable",

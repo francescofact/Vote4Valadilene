@@ -5,6 +5,7 @@ import 'package:steps/steps.dart';
 import 'package:v4v/blockchain.dart';
 import 'package:v4v/main.dart';
 import 'package:v4v/splash.dart';
+import 'package:v4v/utils.dart';
 
 class FlowScreen extends StatefulWidget {
   @override
@@ -14,8 +15,50 @@ class FlowScreen extends StatefulWidget {
 class _FlowScreenState extends State<FlowScreen> {
   Blockchain blockchain = Blockchain();
   AlertStyle animation = AlertStyle(animationType: AnimationType.grow);
+  String quorum_text = "Loading Quorum...";
+  double quorum_circle = 0.0;
 
 
+  @override
+  void initState(){
+    super.initState();
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => _updateQuorum());
+  }
+
+  Future<void> _updateQuorum() async {
+    Alert(
+        context: context,
+        title:"Getting election status...",
+        buttons: [],
+        style: AlertStyle(
+          animationType: AnimationType.grow,
+          isCloseButton: false,
+          isOverlayTapDismiss: false,
+        )
+    ).show();
+    Future.delayed(Duration(milliseconds:500), () => {
+      blockchain.queryView("get_quorum", []).then((value) => {
+        Navigator.of(context).pop(),
+        print(value),
+        setState(() {
+          quorum_text = (value[0] != value[1])
+              ? (value[0]-value[1]).toString() + " votes to quorum (" + value[0].toString() + "/" + value[1].toString() + ")"
+              : "Quorum reached! (Total voters: "+value[0].toString()+")";
+          quorum_circle = (value[1]/value[0]);
+        })
+      }).catchError((error){
+        Navigator.of(context).pop();
+        Alert(
+            context: context,
+            type: AlertType.error,
+            title:"Error",
+            desc: error.toString(),
+            style: animation
+        ).show();
+      })
+    });
+  }
 
   Future<void> _openVote() async {
     List<dynamic> args = [BigInt.from(1234), true];
@@ -128,75 +171,95 @@ class _FlowScreenState extends State<FlowScreen> {
           preferredSize:  Size(MediaQuery.of(context).size.width, 45),
         ),
         body: Container(
-          alignment: Alignment.topCenter,
-          child: Steps(
-            direction: Axis.vertical,
-            size: 20.0,
-            path: {'color': Colors.indigo.shade200, 'width': 3.0},
-            steps: [
-              {
-                'color': Colors.white,
-                'background': Colors.indigoAccent,
-                'label': '1',
-                'content': Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      'Send your vote',
-                      style: TextStyle(fontSize: 22.0),
-                    ),
-                    Text(
-                      'Every vote you cast overwrites the previous one',
-                      style: TextStyle(fontSize: 12.0),
-                    ),
-                    SizedBox(height:20.0),
-                    ElevatedButton(
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => MyHomePage()),
+            alignment: Alignment.topCenter,
+            child: Column(
+              children:[
+                Card(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: <Widget>[
+                      ListTile(
+                        leading: CircularProgressIndicator(
+                          value: quorum_circle,
                         ),
-                        child: Text("Vote")
-                    )
-                  ],
+                        title: Text('$quorum_text'),
+                      ),
+                    ],
+                  ),
                 ),
-              },
-              {
-                'color': Colors.white,
-                'background': Colors.indigoAccent,
-                'label': '2',
-                'content': Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      'Confirm your vote',
-                      style: TextStyle(fontSize: 22.0),
-                    ),
-                    Text(
-                      'When the quorum is reached you can confirm your vote',
-                      style: TextStyle(fontSize: 12.0),
-                    ),
-                    SizedBox(height:20.0),
-                    ElevatedButton(
-                      onPressed: _freezeVote,
-                      child: Text("Confirm"),
-                    )
-                  ],
+                Expanded(
+                  child: Steps(
+                    direction: Axis.vertical,
+                    size: 20.0,
+                    path: {'color': Colors.indigo.shade200, 'width': 3.0},
+                    steps: [
+                      {
+                        'color': Colors.white,
+                        'background': Colors.indigoAccent,
+                        'label': '1',
+                        'content': Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(
+                              'Send your vote',
+                              style: TextStyle(fontSize: 22.0),
+                            ),
+                            Text(
+                              'Every vote you cast overwrites the previous one',
+                              style: TextStyle(fontSize: 12.0),
+                            ),
+                            SizedBox(height:20.0),
+                            ElevatedButton(
+                                onPressed: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => MyHomePage()),
+                                ),
+                                child: Text("Vote")
+                            )
+                          ],
+                        ),
+                      },
+                      {
+                        'color': Colors.white,
+                        'background': Colors.indigoAccent,
+                        'label': '2',
+                        'content': Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(
+                              'Confirm your vote',
+                              style: TextStyle(fontSize: 22.0),
+                            ),
+                            Text(
+                              'When the quorum is reached you can confirm your vote',
+                              style: TextStyle(fontSize: 12.0),
+                            ),
+                            SizedBox(height:20.0),
+                            ElevatedButton(
+                              onPressed: _freezeVote,
+                              child: Text("Confirm"),
+                            )
+                          ],
+                        )
+                      },
+                      {
+                        'color': Colors.white,
+                        'background': Colors.indigoAccent.shade100,
+                        'label': '3',
+                        'content': Image.asset(
+                          'assets/wallet.png',
+                          width: 250,
+                          height: 120,
+                          fit: BoxFit.cover,
+                          alignment: Alignment.center,
+                        ),
+                      }
+                    ],
+                  ),
                 )
-              },
-              {
-                'color': Colors.white,
-                'background': Colors.indigoAccent.shade100,
-                'label': '3',
-                'content': Image.asset(
-                  'assets/wallet.png',
-                  width: 250,
-                  height: 120,
-                  fit: BoxFit.cover,
-                  alignment: Alignment.center,
-                ),
-              }
-            ],
-          ),
-        ));
+              ]
+            )
+          )
+        );
   }
 }
