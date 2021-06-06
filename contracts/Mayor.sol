@@ -145,8 +145,8 @@ contract Mayor {
         
     }
 
-    function get_quorum() public {
-        return [voting_condition.quorum, voting_condition.envelopes_casted];
+    function get_quorum() public returns(uint, uint){
+        return (voting_condition.quorum, voting_condition.envelopes_casted);
     }
  
     /// @notice Compute a voting envelope
