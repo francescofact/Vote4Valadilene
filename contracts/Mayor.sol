@@ -144,7 +144,10 @@ contract Mayor {
         }
         
     }
- 
+
+    function get_quorum() public {
+        return [voting_condition.quorum, voting_condition.envelopes_casted];
+    }
  
     /// @notice Compute a voting envelope
     /// @param _sigil (uint) The secret sigil of a voter
