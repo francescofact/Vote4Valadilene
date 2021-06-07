@@ -32,10 +32,11 @@ class Blockchain {
   }
 
   Future<List<dynamic>> queryView(String fun, List<dynamic> args) async {
+    print("Calling blockchain function: " + fun);
     return ethClient.call(
       sender: await creds.extractAddress(),
       contract: contract,
-      function: contract.function('get_quorum'),
+      function: contract.function(fun),
       params: const [],
     );
   }

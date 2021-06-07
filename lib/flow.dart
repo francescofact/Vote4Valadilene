@@ -43,7 +43,7 @@ class _FlowScreenState extends State<FlowScreen> {
         print(value),
         setState(() {
           quorum_text = (value[0] != value[1])
-              ? (value[0]-value[1]).toString() + " votes to quorum (" + value[0].toString() + "/" + value[1].toString() + ")"
+              ? (value[0]-value[1]).toString() + " votes to quorum (" + value[1].toString() + "/" + value[0].toString() + ")"
               : "Quorum reached! (Total voters: "+value[0].toString()+")";
           quorum_circle = (value[1]/value[0]);
         })
@@ -181,6 +181,10 @@ class _FlowScreenState extends State<FlowScreen> {
                       ListTile(
                         leading: CircularProgressIndicator(
                           value: quorum_circle,
+                        ),
+                        trailing: ElevatedButton(
+                            onPressed: _updateQuorum,
+                            child: Text("Update")
                         ),
                         title: Text('$quorum_text'),
                       ),

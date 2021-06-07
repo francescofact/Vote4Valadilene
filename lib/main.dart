@@ -35,8 +35,46 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   Blockchain blockchain = Blockchain();
 
-  final candidates = ["0x19226bC2662a4Bb77e9C920cE27D3a3016c9a910", "0x2F11fe2AfEa033Bc56e80e18321ea16F6D65cA02", "0xe39606920F4892D99a3C34E602baF56EaEDCE824"];
+  List<dynamic> candidates = [];
   int _selected = -1;
+
+  @override
+  void initState(){
+    super.initState();
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => _updateCandidates());
+  }
+
+  Future<void> _updateCandidates() async {
+    Alert(
+        context: context,
+        title:"Getting candidates...",
+        buttons: [],
+        style: AlertStyle(
+          animationType: AnimationType.grow,
+          isCloseButton: false,
+          isOverlayTapDismiss: false,
+        )
+    ).show();
+    Future.delayed(Duration(milliseconds:500), () => {
+      blockchain.queryView("get_candidates", []).then((value) => {
+        Navigator.of(context).pop(),
+        setState(() {
+          candidates = value[0];
+        })
+      }).catchError((error){
+        Navigator.of(context).pop();
+        Alert(
+            context: context,
+            type: AlertType.error,
+            title:"Error",
+            desc: (error is NoSuchMethodError)
+                ? error.toString()
+                : blockchain.translateError(error)
+        ).show();
+      })
+    });
+  }
 
   Future<void> _sendVote() async {
     AlertStyle animation = AlertStyle(animationType: AnimationType.grow);
@@ -51,8 +89,7 @@ class _MyHomePageState extends State<MyHomePage> {
       return;
     }
 
-
-    List<dynamic> args = [BigInt.from(1234), true, BigInt.from(1000000000000000000)];
+    List<dynamic> args = [BigInt.from(1234), candidates[_selected], BigInt.from(1000000000000000000)];
     Alert(
       context: context,
       title:"Sending your vote...",
@@ -80,7 +117,7 @@ class _MyHomePageState extends State<MyHomePage> {
             title:"Error",
             desc: (error is NoSuchMethodError)
                 ? error.toString()
-                : blockchain.translateError(error)
+                : error.toString()//blockchain.translateError(error)
         ).show();
       })
     });
