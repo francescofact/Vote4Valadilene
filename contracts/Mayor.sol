@@ -7,7 +7,7 @@ contract Mayor {
     // Store refund data
     struct Refund {
         uint soul;
-        bool doblon;
+        address sign;
     }
 
     // Data to manage the confirmation
@@ -18,10 +18,16 @@ contract Mayor {
         bool open;
     }
 
+    struct Candidate {
+        uint32 deposit;
+        uint souls;
+        uint32 votes;
+    }
+
     event NewMayor(address _candidate);
     event Sayonara(address _escrow);
     event EnvelopeCast(address _voter);
-    event EnvelopeOpen(address _voter, uint _soul, bool _doblon);
+    event EnvelopeOpen(address _voter, uint _soul, address _sign);
 
     // Someone can vote as long as the quorum is not reached
     modifier canVote() {
@@ -45,7 +51,7 @@ contract Mayor {
     // State attributes
 
     // Initialization variables
-    address payable public candidate;
+    address[] public candidate;
     address payable public escrow;
 
     // Voting phase variables
@@ -58,14 +64,19 @@ contract Mayor {
 
     // Refund phase variables
     mapping(address => Refund) souls;
+    mapping(address => Candidate) candidates;
+
     address[] voters;
 
     /// @notice The constructor only initializes internal variables
-    /// @param _candidate (address) The address of the mayor candidate
+    /// @param candidates_list (address[]) the list of addresses of the mayor candidate
     /// @param _escrow (address) The address of the escrow account
     /// @param _quorum (address) The number of voters required to finalize the confirmation
-    constructor(address payable _candidate, address payable _escrow, uint32 _quorum) public {
-        candidate = _candidate;
+    constructor(address[] memory candidates_list, address payable _escrow, uint32 _quorum) public {
+        for (uint i=0; i<candidates_list.length; i++){
+            candidates[candidates_list[i]] = Candidate({deposit:0, souls: 0, votes: 0});
+            candidate[i] = candidates_list[i];
+        }
         escrow = _escrow;
         voting_condition = Conditions({quorum: _quorum, envelopes_casted: 0, envelopes_opened: 0, open: true});
     }
@@ -73,14 +84,14 @@ contract Mayor {
 
     /// @notice Store a received voting envelope
     /// @param _sigil (uint) The secret sigil of a voter
-    /// @param _doblon (bool) The voting preference
+    /// @param _sign (address) The voting preference
     /// @param _soul (uint) The soul associated to the vote
-    function cast_envelope(uint _sigil, bool _doblon, uint _soul) canVote public {
+    function cast_envelope(uint _sigil, address _sign, uint _soul) canVote public {
 
-        if(envelopes[msg.sender] == 0x0) // => NEW, update on 17/05/2021
+        if(envelopes[msg.sender] == 0x0)
             voting_condition.envelopes_casted++;
 
-        envelopes[msg.sender] = compute_envelope(_sigil, _doblon, _soul);
+        envelopes[msg.sender] = compute_envelope(_sigil, _sign, _soul);
         emit EnvelopeCast(msg.sender);
 
     }
@@ -88,34 +99,31 @@ contract Mayor {
 
     /// @notice Open an envelope and store the vote information
     /// @param _sigil (uint) The secret sigil of a voter
-    /// @param _doblon (bool) The voting preference
+    /// @param _sign (address) The voting preference
     /// @dev The soul is sent as crypto
     /// @dev Need to recompute the hash to validate the envelope previously casted
-    function open_envelope(uint _sigil, bool _doblon) canOpen public payable {
+    function open_envelope(uint _sigil, address _sign) canOpen public payable {
 
         //safe checks
         require(envelopes[msg.sender] != 0x0, "The sender has not casted any votes");
         require(souls[msg.sender].soul == 0x0, "You have already opened your envelope");
 
         bytes32 _casted_envelope = envelopes[msg.sender];
-        bytes32 _sent_envelope = compute_envelope(_sigil, _doblon, msg.value);
+        bytes32 _sent_envelope = compute_envelope(_sigil, _sign, msg.value);
 
         require(_casted_envelope == _sent_envelope, "Sent envelope does not correspond to the one casted");
 
         //add souls to the correct vote counter
-        if (_doblon == true)
-            yaySoul += msg.value;
-        else
-            naySoul += msg.value;
+        candidates[_sign].souls += msg.value;
 
         //update the number of opened envelopes
         voting_condition.envelopes_opened++;
 
         //pushing voter infos and refund
-        souls[msg.sender] = Refund(msg.value, _doblon);
+        souls[msg.sender] = Refund(msg.value, _sign);
         voters.push(msg.sender);
 
-        emit EnvelopeOpen(msg.sender, msg.value, _doblon);
+        emit EnvelopeOpen(msg.sender, msg.value, _sign);
     }
 
 
@@ -126,18 +134,46 @@ contract Mayor {
         voting_condition.open = false;
 
         //checking winner and manage payments
-        bool elected = yaySoul > naySoul;
-        if (elected) {
-            candidate.transfer(naySoul);
-            emit NewMayor(candidate);
-        } else {
-            escrow.transfer(naySoul);
+        address elected = address(0);
+        uint maxSouls = 0;
+        uint maxVotes = 0;
+        bool invalid = false;
+        for (uint i=0; i<candidate.length; i++){
+            Candidate memory cnd = candidates[candidate[i]];
+            if (cnd.souls > maxSouls){
+                //new first
+                elected = candidate[i];
+                maxSouls = cnd.souls;
+                maxVotes = cnd.votes;
+                invalid = false;
+            } else if (cnd.souls == maxSouls) {
+                //same souls, check voters
+                if (cnd.votes > maxVotes){
+                    //new first
+                    elected = candidate[i];
+                    maxSouls = cnd.souls;
+                    maxVotes = cnd.votes;
+                    invalid = false;
+                } else if (cnd.votes == maxVotes){
+                    //marking as potentially invalid
+                    invalid = true;
+                }
+            }
+        }
+        if (invalid) {
+            //TODO: transfer everything to escrow
+            //escrow.transfer(naySoul);
             emit Sayonara(escrow);
+            return;
+        } else {
+            //TODO: transfer all winner souls to winner
+            //TODO: not sure
+            emit NewMayor(elected);
         }
 
         //refund the losers
         for (uint i=0; i<voters.length; i++){
-            if (souls[voters[i]].doblon != elected){
+            if (souls[voters[i]].sign != elected){
                 address payable voter = payable(voters[i]);
                 voter.transfer(souls[voter].soul);
             }
@@ -149,12 +185,17 @@ contract Mayor {
         return (voting_condition.quorum, voting_condition.envelopes_casted);
     }
 
+    function get_candidates() public view returns(address[] memory){
+        return candidate;
+    }
+
+
     /// @notice Compute a voting envelope
     /// @param _sigil (uint) The secret sigil of a voter
-    /// @param _doblon (bool) The voting preference
+    /// @param _sign (address) The voting preference
     /// @param _soul (uint) The soul associated to the vote
-    function compute_envelope(uint _sigil, bool _doblon, uint _soul) private pure returns(bytes32) {
-        return keccak256(abi.encode(_sigil, _doblon, _soul));
+    function compute_envelope(uint _sigil, address _sign, uint _soul) private pure returns(bytes32) {
+        return keccak256(abi.encode(_sigil, _sign, _soul));
     }
 
 }
