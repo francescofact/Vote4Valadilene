@@ -2,9 +2,9 @@
   {
     "inputs": [
       {
-        "internalType": "address payable",
-        "name": "_candidate",
-        "type": "address"
+        "internalType": "address[]",
+        "name": "_candidates",
+        "type": "address[]"
       },
       {
         "internalType": "address payable",
@@ -50,9 +50,9 @@
       },
       {
         "indexed": false,
-        "internalType": "bool",
-        "name": "_doblon",
-        "type": "bool"
+        "internalType": "address",
+        "name": "_sign",
+        "type": "address"
       }
     ],
     "name": "EnvelopeOpen",
@@ -85,11 +85,17 @@
     "type": "event"
   },
   {
-    "inputs": [],
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
     "name": "candidate",
     "outputs": [
       {
-        "internalType": "address payable",
+        "internalType": "address",
         "name": "",
         "type": "address"
       }
@@ -105,9 +111,9 @@
         "type": "uint256"
       },
       {
-        "internalType": "bool",
-        "name": "_doblon",
-        "type": "bool"
+        "internalType": "address",
+        "name": "_sign",
+        "type": "address"
       },
       {
         "internalType": "uint256",
@@ -128,6 +134,19 @@
         "internalType": "address payable",
         "name": "",
         "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "get_candidates",
+    "outputs": [
+      {
+        "internalType": "address[]",
+        "name": "",
+        "type": "address[]"
       }
     ],
     "stateMutability": "view",
@@ -159,19 +178,6 @@
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "naySoul",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "uint256",
@@ -179,27 +185,14 @@
         "type": "uint256"
       },
       {
-        "internalType": "bool",
-        "name": "_doblon",
-        "type": "bool"
+        "internalType": "address",
+        "name": "_sign",
+        "type": "address"
       }
     ],
     "name": "open_envelope",
     "outputs": [],
     "stateMutability": "payable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "yaySoul",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   }
 ]
