@@ -59,9 +59,6 @@ contract Mayor {
 
     Conditions voting_condition;
 
-    uint public naySoul;
-    uint public yaySoul;
-
     // Refund phase variables
     mapping(address => Refund) souls;
     mapping(address => Candidate) candidates;
@@ -69,14 +66,16 @@ contract Mayor {
     address[] voters;
 
     /// @notice The constructor only initializes internal variables
-    /// @param candidates_list (address[]) the list of addresses of the mayor candidate
+    /// @param _candidates (address) The address of the mayor candidate
     /// @param _escrow (address) The address of the escrow account
     /// @param _quorum (address) The number of voters required to finalize the confirmation
-    constructor(address[] memory candidates_list, address payable _escrow, uint32 _quorum) public {
-        for (uint i=0; i<candidates_list.length; i++){
-            candidates[candidates_list[i]] = Candidate({deposit:0, souls: 0, votes: 0});
-            candidate[i] = candidates_list[i];
+    constructor(address[] memory _candidates, address payable _escrow, uint32 _quorum) public {
+        for (uint i=0; i<_candidates.length; i++){
+            address key = _candidates[i];
+            candidates[key] = Candidate({deposit:0, souls: 0, votes: 0});
+            candidate.push(key);
         }
+
         escrow = _escrow;
         voting_condition = Conditions({quorum: _quorum, envelopes_casted: 0, envelopes_opened: 0, open: true});
     }
