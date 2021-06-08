@@ -1,4 +1,8 @@
+import 'dart:html';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:jdenticon_dart/jdenticon_dart.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
@@ -35,6 +39,8 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   Blockchain blockchain = Blockchain();
 
+  final text_souls = TextEditingController();
+  final text_secret = TextEditingController();
   List<dynamic> candidates = [];
   int _selected = -1;
 
@@ -89,7 +95,7 @@ class _MyHomePageState extends State<MyHomePage> {
       return;
     }
 
-    List<dynamic> args = [BigInt.from(1234), candidates[_selected], BigInt.from(1000000000000000000)];
+    List<dynamic> args = [BigInt.parse(text_secret.text), candidates[_selected], BigInt.parse(text_souls.text)];
     Alert(
       context: context,
       title:"Sending your vote...",
@@ -145,7 +151,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ),
         ),
-        preferredSize:  Size(MediaQuery.of(context).size.width, 45),
+        preferredSize: Size(MediaQuery.of(context).size.width, 45),
       ),
       body: Center(
         child: Container(
@@ -194,6 +200,68 @@ class _MyHomePageState extends State<MyHomePage> {
                     );
                   },
                 ),
+              ),
+              Text("How many souls?"),
+              SizedBox(
+                height:90,
+                width: MediaQuery.of(context).size.width * 0.8,
+                child: Column(
+                    children: [
+                      TextField(
+                          decoration: new InputDecoration(hintText: "Souls in Wei"),
+                          keyboardType: TextInputType.number,
+                          controller: text_souls,
+                          inputFormatters: <TextInputFormatter>[
+                            FilteringTextInputFormatter.digitsOnly
+                          ],
+                      ),
+                      SizedBox(
+                        height:10,
+                      ),
+                      Wrap(
+                        children:[
+                          InputChip(
+                              label: Text('5 ETH'),
+                              onSelected: (bool) => {text_souls.text = "5000000000000000000"}
+                          ),
+                          SizedBox(width:8),
+                          InputChip(
+                              label: Text('1 ETH'),
+                              onSelected: (bool) => {text_souls.text = "1000000000000000000"}
+                          ),
+                          SizedBox(width:8),
+                          InputChip(
+                              label: Text('0.5 ETH'),
+                              onSelected: (bool) => {text_souls.text = "500000000000000000"}
+                          ),
+                          SizedBox(width:8),
+                          InputChip(
+                              label: Text('0.01 ETH'),
+                              onSelected: (bool) => {text_souls.text = "10000000000000000"}
+                          ),
+                        ]
+                      ),
+                    ]
+                ),
+              ),
+              SizedBox(
+                height: 30,
+              ),
+              Text("Create your secret"),
+              SizedBox(
+                height:40,
+                width: MediaQuery.of(context).size.width * 0.8,
+                child: TextField(
+                  decoration: new InputDecoration(hintText: "Secret in numbers"),
+                  keyboardType: TextInputType.number,
+                  controller: text_secret,
+                  inputFormatters: <TextInputFormatter>[
+                    FilteringTextInputFormatter.digitsOnly
+                  ],
+                ),
+              ),
+              SizedBox(
+                height: 30,
               ),
               ElevatedButton(
                   onPressed: _sendVote,
