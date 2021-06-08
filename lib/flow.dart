@@ -1,11 +1,11 @@
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:steps/steps.dart';
 import 'package:v4v/blockchain.dart';
 import 'package:v4v/main.dart';
 import 'package:v4v/splash.dart';
-import 'package:v4v/utils.dart';
 
 class FlowScreen extends StatefulWidget {
   @override
@@ -17,7 +17,7 @@ class _FlowScreenState extends State<FlowScreen> {
   AlertStyle animation = AlertStyle(animationType: AnimationType.grow);
   String quorum_text = "Loading Quorum...";
   double quorum_circle = 0.0;
-
+  double step = -1;
 
   @override
   void initState(){
@@ -46,6 +46,8 @@ class _FlowScreenState extends State<FlowScreen> {
               ? (value[0]-value[1]).toString() + " votes to quorum (" + value[1].toString() + "/" + value[0].toString() + ")"
               : "Quorum reached! (Total voters: "+value[0].toString()+")";
           quorum_circle = (value[1]/value[0]);
+          if (value[1] == value[0])
+            step=1;
         })
       }).catchError((error){
         Navigator.of(context).pop();
@@ -60,8 +62,8 @@ class _FlowScreenState extends State<FlowScreen> {
     });
   }
 
-  Future<void> _openVote() async {
-    List<dynamic> args = [BigInt.from(1234), true];
+  Future<void> _openVote(String secret, String wei) async {
+    List<dynamic> args = [BigInt.parse(secret), true];
     Alert(
         context: context,
         title:"Confirming your vote...",
@@ -73,7 +75,7 @@ class _FlowScreenState extends State<FlowScreen> {
         )
     ).show();
     Future.delayed(Duration(milliseconds:500), () => {
-      blockchain.query("open_envelope", args, wei:1000000000000000000).then((value) => {
+      blockchain.query("open_envelope", args, wei: BigInt.parse(wei)).then((value) => {
         Navigator.of(context).pop(),
         Alert(
             context: context,
@@ -96,35 +98,83 @@ class _FlowScreenState extends State<FlowScreen> {
   }
 
   void _freezeVote(){
+    TextEditingController text_souls = TextEditingController();
+    TextEditingController text_secret = TextEditingController();
     Alert(
-      context: context,
-      type: AlertType.warning,
-      title: "Are you sure?",
-      desc: "Once you confirm your vote you cannot change it",
-      style: animation,
-      buttons: [
-        DialogButton(
-          child: Text(
-            "Confirm",
-            style: TextStyle(color: Colors.white, fontSize: 20),
-          ),
-          onPressed: () => {
-            Navigator.pop(context),
-            _openVote(),
-          },
-          color: Color.fromRGBO(0, 179, 134, 1.0),
+        context: context,
+        type: AlertType.info,
+        title: "Confirm the vote you casted",
+        content: Column(
+          children: <Widget>[
+            TextField(
+              decoration: InputDecoration(
+                labelText: 'Secret Amount',
+              ),
+              keyboardType: TextInputType.number,
+              controller: text_secret,
+              inputFormatters: <TextInputFormatter>[
+                FilteringTextInputFormatter.digitsOnly
+              ],
+            ),
+            TextField(
+              controller: text_souls,
+              decoration: InputDecoration(
+                labelText: 'Souls Amount',
+              ),
+              keyboardType: TextInputType.number,
+              inputFormatters: <TextInputFormatter>[
+                FilteringTextInputFormatter.digitsOnly
+              ],
+            ),
+            SizedBox(
+              height:10,
+            ),
+            Wrap(
+                children:[
+                  InputChip(
+                      label: Text('5 ETH'),
+                      onSelected: (bool) => {text_souls.text = "5000000000000000000"}
+                  ),
+                  SizedBox(width:8),
+                  InputChip(
+                      label: Text('1 ETH'),
+                      onSelected: (bool) => {text_souls.text = "1000000000000000000"}
+                  ),
+                  SizedBox(width:8),
+                  InputChip(
+                      label: Text('0.5 ETH'),
+                      onSelected: (bool) => {text_souls.text = "500000000000000000"}
+                  ),
+                  SizedBox(width:8),
+                  InputChip(
+                      label: Text('0.01 ETH'),
+                      onSelected: (bool) => {text_souls.text = "10000000000000000"}
+                  ),
+                ]
+            ),
+          ],
         ),
-        DialogButton(
-          child: Text(
-            "Cancel",
-            style: TextStyle(color: Colors.white, fontSize: 20),
-          ),
-          onPressed: () => Navigator.pop(context),
-          color: Colors.red,
-        )
-      ],
-    ).show();
+        buttons: [
+          DialogButton(
+            onPressed: () => {
+              Navigator.pop(context),
+              _openVote(text_secret.text, text_souls.text),
+            },
+            child: Text(
+              "Confirm Vote",
+              style: TextStyle(color: Colors.white, fontSize: 20),
+            ),
+          )
+        ]).show();
   }
+
+  Color getColor4Step(int _step) {
+    if (step == _step) 
+      return Colors.indigoAccent;
+    return Colors.indigoAccent.shade100;
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -199,7 +249,7 @@ class _FlowScreenState extends State<FlowScreen> {
                     steps: [
                       {
                         'color': Colors.white,
-                        'background': Colors.indigoAccent,
+                        'background': getColor4Step(0),
                         'label': '1',
                         'content': Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -214,10 +264,15 @@ class _FlowScreenState extends State<FlowScreen> {
                             ),
                             SizedBox(height:20.0),
                             ElevatedButton(
-                                onPressed: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => MyHomePage()),
-                                ),
+                                onPressed:
+                                  (step==0)
+                                    ? () => (
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (context) => MyHomePage()),
+                                      )
+                                    )
+                                  : null,
                                 child: Text("Vote")
                             )
                           ],
@@ -225,7 +280,7 @@ class _FlowScreenState extends State<FlowScreen> {
                       },
                       {
                         'color': Colors.white,
-                        'background': Colors.indigoAccent,
+                        'background': getColor4Step(1),
                         'label': '2',
                         'content': Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -240,7 +295,10 @@ class _FlowScreenState extends State<FlowScreen> {
                             ),
                             SizedBox(height:20.0),
                             ElevatedButton(
-                              onPressed: _freezeVote,
+                              onPressed:
+                                (step==1)
+                                  ? _freezeVote
+                                  : null,
                               child: Text("Confirm"),
                             )
                           ],

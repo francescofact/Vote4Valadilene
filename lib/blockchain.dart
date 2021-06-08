@@ -41,12 +41,14 @@ class Blockchain {
     );
   }
 
-  Future<void> query(String fun, List<dynamic> args, {int wei=0}) async {
+  Future<void> query(String fun, List<dynamic> args, {BigInt wei}) async {
+    if (wei == null)
+      wei = BigInt.zero;
     return ethClient.sendTransaction(creds, Transaction.callContract(
       contract: contract,
       function: contract.function(fun),
       parameters: args,
-      value: EtherAmount.inWei(BigInt.from(wei)),
+      value: EtherAmount.inWei(wei),
       maxGas: 999999,
     ));
   }

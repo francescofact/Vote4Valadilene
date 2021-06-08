@@ -1,5 +1,3 @@
-import 'dart:html';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -203,7 +201,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
               Text("How many souls?"),
               SizedBox(
-                height:90,
+                height:140,
                 width: MediaQuery.of(context).size.width * 0.8,
                 child: Column(
                     children: [
@@ -243,9 +241,6 @@ class _MyHomePageState extends State<MyHomePage> {
                       ),
                     ]
                 ),
-              ),
-              SizedBox(
-                height: 30,
               ),
               Text("Create your secret"),
               SizedBox(
