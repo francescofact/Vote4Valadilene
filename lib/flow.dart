@@ -104,8 +104,8 @@ class _FlowScreenState extends State<FlowScreen> {
 
   Color getColor4Step(int _step) {
     if (step == _step) 
-      return Colors.indigoAccent;
-    return Colors.indigoAccent.shade100;
+      return Colors.purpleAccent;
+    return Colors.purple.shade100;
   }
 
 
@@ -179,7 +179,7 @@ class _FlowScreenState extends State<FlowScreen> {
                   child: Steps(
                     direction: Axis.vertical,
                     size: 20.0,
-                    path: {'color': Colors.indigo.shade200, 'width': 3.0},
+                    path: {'color': Colors.purple.shade100, 'width': 3.0},
                     steps: [
                       {
                         'color': Colors.white,
@@ -245,7 +245,7 @@ class _FlowScreenState extends State<FlowScreen> {
                       },
                       {
                         'color': Colors.white,
-                        'background': Colors.indigoAccent.shade100,
+                        'background': getColor4Step(1),
                         'label': '3',
                         'content': Image.asset(
                           'assets/wallet.png',
