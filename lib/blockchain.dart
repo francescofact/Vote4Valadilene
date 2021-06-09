@@ -37,7 +37,7 @@ class Blockchain {
       sender: await creds.extractAddress(),
       contract: contract,
       function: contract.function(fun),
-      params: const [],
+      params: args,
     );
   }
 
