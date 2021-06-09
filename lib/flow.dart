@@ -1,6 +1,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:jdenticon_dart/jdenticon_dart.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:steps/steps.dart';
 import 'package:v4v/blockchain.dart';
@@ -95,77 +97,6 @@ class _FlowScreenState extends State<FlowScreen> {
         ).show();
       })
     });
-  }
-
-  void _freezeVote(){
-    TextEditingController text_souls = TextEditingController();
-    TextEditingController text_secret = TextEditingController();
-    Alert(
-        context: context,
-        type: AlertType.info,
-        title: "Confirm the vote you casted",
-        content: Column(
-          children: <Widget>[
-            TextField(
-              decoration: InputDecoration(
-                labelText: 'Secret Amount',
-              ),
-              keyboardType: TextInputType.number,
-              controller: text_secret,
-              inputFormatters: <TextInputFormatter>[
-                FilteringTextInputFormatter.digitsOnly
-              ],
-            ),
-            TextField(
-              controller: text_souls,
-              decoration: InputDecoration(
-                labelText: 'Souls Amount',
-              ),
-              keyboardType: TextInputType.number,
-              inputFormatters: <TextInputFormatter>[
-                FilteringTextInputFormatter.digitsOnly
-              ],
-            ),
-            SizedBox(
-              height:10,
-            ),
-            Wrap(
-                children:[
-                  InputChip(
-                      label: Text('5 ETH'),
-                      onSelected: (bool) => {text_souls.text = "5000000000000000000"}
-                  ),
-                  SizedBox(width:8),
-                  InputChip(
-                      label: Text('1 ETH'),
-                      onSelected: (bool) => {text_souls.text = "1000000000000000000"}
-                  ),
-                  SizedBox(width:8),
-                  InputChip(
-                      label: Text('0.5 ETH'),
-                      onSelected: (bool) => {text_souls.text = "500000000000000000"}
-                  ),
-                  SizedBox(width:8),
-                  InputChip(
-                      label: Text('0.01 ETH'),
-                      onSelected: (bool) => {text_souls.text = "10000000000000000"}
-                  ),
-                ]
-            ),
-          ],
-        ),
-        buttons: [
-          DialogButton(
-            onPressed: () => {
-              Navigator.pop(context),
-              _openVote(text_secret.text, text_souls.text),
-            },
-            child: Text(
-              "Confirm Vote",
-              style: TextStyle(color: Colors.white, fontSize: 20),
-            ),
-          )
-        ]).show();
   }
 
   Color getColor4Step(int _step) {
@@ -269,7 +200,7 @@ class _FlowScreenState extends State<FlowScreen> {
                                     ? () => (
                                       Navigator.push(
                                         context,
-                                        MaterialPageRoute(builder: (context) => Vote()),
+                                        MaterialPageRoute(builder: (context) => Vote(isConfirming: false)),
                                       )
                                     )
                                   : null,
@@ -296,8 +227,13 @@ class _FlowScreenState extends State<FlowScreen> {
                             SizedBox(height:20.0),
                             ElevatedButton(
                               onPressed:
-                                (step==1)
-                                  ? _freezeVote
+                              (step==1)
+                                  ? () => (
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(builder: (context) => Vote(isConfirming: true)),
+                                    )
+                                  )
                                   : null,
                               child: Text("Confirm"),
                             )

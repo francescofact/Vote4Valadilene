@@ -7,15 +7,21 @@ import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:v4v/blockchain.dart';
 
 class Vote extends StatefulWidget {
+  final bool isConfirming;
+
+  Vote({Key key, @required this.isConfirming}) : super(key: key);
+
   @override
   _VoteState createState() => _VoteState();
 }
 
 class _VoteState extends State<Vote> {
   Blockchain blockchain = Blockchain();
+  AlertStyle animation = AlertStyle(animationType: AnimationType.grow);
 
   final text_souls = TextEditingController();
   final text_secret = TextEditingController();
+
   List<dynamic> candidates = [];
   int _selected = -1;
 
@@ -57,18 +63,63 @@ class _VoteState extends State<Vote> {
     });
   }
 
-  Future<void> _sendVote() async {
-    AlertStyle animation = AlertStyle(animationType: AnimationType.grow);
+  bool checkSelection(){
     if (_selected == -1){
       Alert(
           context: context,
           type: AlertType.error,
           title:"Error",
-          desc: "Please select the major you want to vote",
+          desc: (widget.isConfirming)
+            ? "Please select the major you voted"
+            : "Please select the major you want to vote",
           style: animation
       ).show();
-      return;
+      return false;
     }
+    return true;
+  }
+
+  Future<void> _openVote() async {
+    if (!checkSelection())
+      return;
+
+    List<dynamic> args = [BigInt.parse(text_secret.text), candidates[_selected]];
+    Alert(
+        context: context,
+        title:"Confirming your vote...",
+        buttons: [],
+        style: AlertStyle(
+          animationType: AnimationType.grow,
+          isCloseButton: false,
+          isOverlayTapDismiss: false,
+        )
+    ).show();
+    Future.delayed(Duration(milliseconds:500), () => {
+      blockchain.query("open_envelope", args, wei: BigInt.parse(text_souls.text)).then((value) => {
+        Navigator.of(context).pop(),
+        Alert(
+            context: context,
+            type: AlertType.success,
+            title:"OK",
+            desc: "Your vote has been casted!",
+            style: animation
+        ).show()
+      }).catchError((error){
+        Navigator.of(context).pop();
+        Alert(
+            context: context,
+            type: AlertType.error,
+            title:"Error",
+            desc: blockchain.translateError(error),
+            style: animation
+        ).show();
+      })
+    });
+  }
+
+  Future<void> _sendVote() async {
+    if (!checkSelection())
+      return;
 
     List<dynamic> args = [BigInt.parse(text_secret.text), candidates[_selected], BigInt.parse(text_souls.text)];
     Alert(
@@ -134,7 +185,9 @@ class _VoteState extends State<Vote> {
           child: Column(
             children: <Widget>[
               Text(
-                'Vote The New Major',
+                (widget.isConfirming)
+                ? 'Confirm Previous Vote'
+                : 'Vote The New Major',
                 style: TextStyle(fontSize: 40),
               ),
               Container(
@@ -176,7 +229,9 @@ class _VoteState extends State<Vote> {
                   },
                 ),
               ),
-              Text("How many souls?"),
+              Text(
+                  "How many souls?"
+              ),
               SizedBox(
                 height:140,
                 width: MediaQuery.of(context).size.width * 0.8,
@@ -219,7 +274,11 @@ class _VoteState extends State<Vote> {
                     ]
                 ),
               ),
-              Text("Create your secret"),
+              Text(
+                  (widget.isConfirming)
+                  ? "Enter your secret"
+                  : "Create your secret"
+              ),
               SizedBox(
                 height:40,
                 width: MediaQuery.of(context).size.width * 0.8,
@@ -236,9 +295,15 @@ class _VoteState extends State<Vote> {
                 height: 30,
               ),
               ElevatedButton(
-                  onPressed: _sendVote,
+                  onPressed:
+                    (widget.isConfirming)
+                      ? _openVote
+                      : _sendVote
+                  ,
                   child: Text(
-                      "Send Vote"
+                      (widget.isConfirming)
+                      ? "Confirm Vote"
+                      : "Send Vote"
                   )
               ),
             ],
