@@ -153,7 +153,13 @@
     "type": "function"
   },
   {
-    "inputs": [],
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "addr",
+        "type": "address"
+      }
+    ],
     "name": "get_quorum",
     "outputs": [
       {
@@ -165,6 +171,11 @@
         "internalType": "uint32",
         "name": "",
         "type": "uint32"
+      },
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
       }
     ],
     "stateMutability": "view",

@@ -191,7 +191,7 @@ contract Mayor {
     //It returns a list of:
     //uint32 => quorum
     //uint32 => votes casted
-    //bool => if passed addr have open his letter
+    //bool => if passed addr has still to open his letter
     function get_quorum(address addr) public view returns(uint32, uint32, bool){
         return (voting_condition.quorum, voting_condition.envelopes_casted, (souls[addr].soul == 0x0));
     }
