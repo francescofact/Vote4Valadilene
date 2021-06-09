@@ -1,8 +1,5 @@
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_svg/svg.dart';
-import 'package:jdenticon_dart/jdenticon_dart.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:steps/steps.dart';
 import 'package:v4v/blockchain.dart';
@@ -68,48 +65,11 @@ class _FlowScreenState extends State<FlowScreen> {
     });
   }
 
-  Future<void> _openVote(String secret, String wei) async {
-    List<dynamic> args = [BigInt.parse(secret), true];
-    Alert(
-        context: context,
-        title:"Confirming your vote...",
-        buttons: [],
-        style: AlertStyle(
-          animationType: AnimationType.grow,
-          isCloseButton: false,
-          isOverlayTapDismiss: false,
-        )
-    ).show();
-    Future.delayed(Duration(milliseconds:500), () => {
-      blockchain.query("open_envelope", args, wei: BigInt.parse(wei)).then((value) => {
-        Navigator.of(context).pop(),
-        Alert(
-          context: context,
-          type: AlertType.success,
-          title:"OK",
-          desc: "Your vote has been casted!",
-          style: animation
-        ).show()
-      }).catchError((error){
-        Navigator.of(context).pop();
-        Alert(
-          context: context,
-          type: AlertType.error,
-          title:"Error",
-          desc: error.toString(),//blockchain.translateError(error),
-          style: animation
-        ).show();
-      })
-    });
-  }
-
   Color getColor4Step(int _step) {
     if (step == _step) 
       return Colors.purpleAccent;
     return Colors.purple.shade100;
   }
-
-
 
   @override
   Widget build(BuildContext context) {

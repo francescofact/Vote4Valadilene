@@ -5,7 +5,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'blockchain.dart';
 import 'login.dart';
 import 'flow.dart';
-import 'utils.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
