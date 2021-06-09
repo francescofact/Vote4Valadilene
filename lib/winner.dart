@@ -130,11 +130,27 @@ class _WinnerState extends State<Winner> {
                         color: Colors.white,
                         child: ListTile(
                           leading: ExcludeSemantics(
-                            child: SvgPicture.string(
-                              Jdenticon.toSvg("${candidates[index]}"),
-                              fit: BoxFit.fill,
-                              height: 50,
-                              width: 50,
+                            child: Stack(
+                              children: [
+                                SvgPicture.string(
+                                  Jdenticon.toSvg("${candidates[index]}"),
+                                  fit: BoxFit.fill,
+                                  height: 50,
+                                  width: 50,
+                                ),
+                                Text(
+                                    (() {
+                                      switch(index){
+                                        case 0: return "🥇";
+                                        case 1: return "🥈";
+                                        case 2: return "🥉";
+                                      }
+                                      return "";
+                                    }()),
+                                    textAlign: TextAlign.right,
+                                    style: TextStyle(fontSize: 30)
+                                ),
+                              ]
                             ),
                           ),
                           title: Text(
