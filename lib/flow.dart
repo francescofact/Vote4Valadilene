@@ -48,8 +48,11 @@ class _FlowScreenState extends State<FlowScreen> {
               ? (value[0]-value[1]).toString() + " votes to quorum (" + value[1].toString() + "/" + value[0].toString() + ")"
               : "Quorum reached! (Total voters: "+value[0].toString()+")";
           quorum_circle = (value[1]/value[0]);
-          if (value[1] == value[0])
-            step=1;
+          if (value[1] == value[0]) {
+            step = 1;
+          } else {
+            step = 0;
+          }
         })
       }).catchError((error){
         Navigator.of(context).pop();
