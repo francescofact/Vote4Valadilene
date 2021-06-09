@@ -8,6 +8,7 @@ import 'package:steps/steps.dart';
 import 'package:v4v/blockchain.dart';
 import 'package:v4v/vote.dart';
 import 'package:v4v/splash.dart';
+import 'package:v4v/winner.dart';
 
 class FlowScreen extends StatefulWidget {
   @override
@@ -245,15 +246,34 @@ class _FlowScreenState extends State<FlowScreen> {
                       },
                       {
                         'color': Colors.white,
-                        'background': getColor4Step(1),
+                        'background': getColor4Step(2),
                         'label': '3',
-                        'content': Image.asset(
-                          'assets/wallet.png',
-                          width: 250,
-                          height: 120,
-                          fit: BoxFit.cover,
-                          alignment: Alignment.center,
-                        ),
+                        'content': Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text(
+                              'Declare the winner',
+                              style: TextStyle(fontSize: 22.0),
+                            ),
+                            Text(
+                              'Once everyone has confirmed their vote you can ask to declare the winner',
+                              style: TextStyle(fontSize: 12.0),
+                            ),
+                            SizedBox(height:20.0),
+                            ElevatedButton(
+                              onPressed:
+                              (step==1)
+                                  ? () => (
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => Winner()),
+                                  )
+                              )
+                                  : null,
+                              child: Text("Ask to declare"),
+                            )
+                          ],
+                        )
                       }
                     ],
                   ),
