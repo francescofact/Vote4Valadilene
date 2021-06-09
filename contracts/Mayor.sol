@@ -141,7 +141,7 @@ contract Mayor {
             Candidate memory cnd = candidates[candidate[i]];
             if (cnd.souls > maxSouls){
                 //new first
-                elected = candidate[i];
+                elected = payable(candidate[i]);
                 maxSouls = cnd.souls;
                 maxVotes = cnd.votes;
                 invalid = false;
@@ -160,13 +160,19 @@ contract Mayor {
             }
         }
         if (invalid) {
-            //TODO: transfer everything to escrow
-            //escrow.transfer(naySoul);
+            uint allsouls = 0;
+            for (uint i=0; i<candidate.length; i++){
+                uint c_souls = candidates[candidate[i]].souls;
+                candidates[candidate[i]].souls = 0; //protection for reentrancy
+                allsouls += c_souls;
+            }
+            escrow.transfer(allsouls);
             emit Sayonara(escrow);
             return;
         } else {
-            //TODO: transfer all winner souls to winner
-            //TODO: not sure
+            uint w_souls = candidates[elected].souls;
+            candidates[elected].souls = 0;
+            payable(elected).transfer(w_souls);
             emit NewMayor(elected);
         }
 
@@ -180,8 +186,14 @@ contract Mayor {
 
     }
 
-    function get_quorum() public view returns(uint32, uint32){
-        return (voting_condition.quorum, voting_condition.envelopes_casted);
+    //This API is used by the FlowScreen to display the proper step
+    //@param address
+    //It returns a list of:
+    //uint32 => quorum
+    //uint32 => votes casted
+    //bool => if passed addr have open his letter
+    function get_quorum(address addr) public view returns(uint32, uint32, bool){
+        return (voting_condition.quorum, voting_condition.envelopes_casted, (souls[addr].soul == 0x0));
     }
 
     function get_candidates() public view returns(address[] memory){

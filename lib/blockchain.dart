@@ -77,4 +77,8 @@ class Blockchain {
       prefs.remove('key')
     });
   }
+
+  Future<EthereumAddress> myAddr() async{
+    return creds.extractAddress();
+  }
 }

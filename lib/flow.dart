@@ -37,8 +37,8 @@ class _FlowScreenState extends State<FlowScreen> {
           isOverlayTapDismiss: false,
         )
     ).show();
-    Future.delayed(Duration(milliseconds:500), () => {
-      blockchain.queryView("get_quorum", []).then((value) => {
+    Future.delayed(Duration(milliseconds:500), () async => {
+      blockchain.queryView("get_quorum", [await blockchain.myAddr()]).then((value) => {
         Navigator.of(context).pop(),
         print(value),
         setState(() {
