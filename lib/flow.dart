@@ -26,6 +26,46 @@ class _FlowScreenState extends State<FlowScreen> {
         .addPostFrameCallback((_) => _updateQuorum());
   }
 
+  Future<void> _mayorOrSayonara() async {
+    Alert(
+        context: context,
+        title:"Asking the winner...",
+        buttons: [],
+        style: AlertStyle(
+          animationType: AnimationType.grow,
+          isCloseButton: false,
+          isOverlayTapDismiss: false,
+        )
+    ).show();
+    Future.delayed(Duration(milliseconds:500), () async =>
+    {
+      blockchain.query("mayor_or_sayonara", []).then((value) =>
+      {
+        Navigator.of(context).pop(),
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => Winner()),
+        )
+      }).catchError((error) {
+        Navigator.of(context).pop();
+        if (error.toString().contains("has already been")) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => Winner()),
+          );
+          return null;
+        }
+        Alert(
+            context: context,
+            type: AlertType.error,
+            title: "Error",
+            desc: blockchain.translateError(error),
+            style: animation
+        ).show();
+      })
+    });
+  }
+
   Future<void> _updateQuorum() async {
     Alert(
         context: context,
@@ -40,14 +80,15 @@ class _FlowScreenState extends State<FlowScreen> {
     Future.delayed(Duration(milliseconds:500), () async => {
       blockchain.queryView("get_quorum", [await blockchain.myAddr()]).then((value) => {
         Navigator.of(context).pop(),
-        print(value),
         setState(() {
           quorum_text = (value[0] != value[1])
               ? (value[0]-value[1]).toString() + " votes to quorum (" + value[1].toString() + "/" + value[0].toString() + ")"
               : "Quorum reached! (Total voters: "+value[0].toString()+")";
           quorum_circle = (value[1]/value[0]);
           if (value[1] == value[0]) {
-            step = 1;
+            if (value[2])
+              step = 1;
+            step=2;
           } else {
             step = 0;
           }
@@ -58,7 +99,7 @@ class _FlowScreenState extends State<FlowScreen> {
             context: context,
             type: AlertType.error,
             title:"Error",
-            desc: error.toString(),
+            desc: blockchain.translateError(error),
             style: animation
         ).show();
       })
@@ -222,13 +263,8 @@ class _FlowScreenState extends State<FlowScreen> {
                             SizedBox(height:20.0),
                             ElevatedButton(
                               onPressed:
-                              (step==1)
-                                  ? () => (
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (context) => Winner()),
-                                  )
-                              )
+                              (step==2)
+                                  ? _mayorOrSayonara
                                   : null,
                               child: Text("Ask to declare"),
                             )
