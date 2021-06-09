@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:steps/steps.dart';
 import 'package:v4v/blockchain.dart';
-import 'package:v4v/main.dart';
+import 'package:v4v/vote.dart';
 import 'package:v4v/splash.dart';
 
 class FlowScreen extends StatefulWidget {
@@ -78,19 +78,19 @@ class _FlowScreenState extends State<FlowScreen> {
       blockchain.query("open_envelope", args, wei: BigInt.parse(wei)).then((value) => {
         Navigator.of(context).pop(),
         Alert(
-            context: context,
-            type: AlertType.success,
-            title:"OK",
-            desc: "Your vote has been casted!",
-            style: animation
+          context: context,
+          type: AlertType.success,
+          title:"OK",
+          desc: "Your vote has been casted!",
+          style: animation
         ).show()
       }).catchError((error){
         Navigator.of(context).pop();
         Alert(
-            context: context,
-            type: AlertType.error,
-            title:"Error",
-            desc: blockchain.translateError(error),
+          context: context,
+          type: AlertType.error,
+          title:"Error",
+          desc: error.toString(),//blockchain.translateError(error),
           style: animation
         ).show();
       })
@@ -269,7 +269,7 @@ class _FlowScreenState extends State<FlowScreen> {
                                     ? () => (
                                       Navigator.push(
                                         context,
-                                        MaterialPageRoute(builder: (context) => MyHomePage()),
+                                        MaterialPageRoute(builder: (context) => Vote()),
                                       )
                                     )
                                   : null,
