@@ -80,6 +80,12 @@ class _FlowScreenState extends State<FlowScreen> {
     Future.delayed(Duration(milliseconds:500), () async => {
       blockchain.queryView("get_quorum", [await blockchain.myAddr()]).then((value) => {
         Navigator.of(context).pop(),
+        if (value[3] == false){
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => Vote(isConfirming: false)),
+          )
+        },
         setState(() {
           quorum_text = (value[0] != value[1])
               ? (value[0]-value[1]).toString() + " votes to quorum (" + value[1].toString() + "/" + value[0].toString() + ")"

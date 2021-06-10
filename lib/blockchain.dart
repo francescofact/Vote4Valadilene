@@ -7,7 +7,7 @@ import 'package:web3dart/web3dart.dart';
 
 class Blockchain {
 
-  final String contractAddr = "0xe7f31968e6daC07BD7F40450e695faBb0495E584";
+  final String contractAddr = "0x06EeBDaCabcfF7d226DaACbd5acb50E4B7Ee247B";
   Client httpClient;
   Web3Client ethClient;
   Credentials creds;
