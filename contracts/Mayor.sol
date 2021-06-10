@@ -187,13 +187,16 @@ contract Mayor {
     }
 
     //This API is used by the FlowScreen to display the proper step
+    //NOTE: i don't consider a security problem the possibility that someone cheat on his address
+    // because the information that would leak it is not so private
     //@param address
     //It returns a list of:
     //uint32 => quorum
     //uint32 => votes casted
     //bool => if passed addr has still to open his letter
-    function get_quorum(address addr) public view returns(uint32, uint32, bool){
-        return (voting_condition.quorum, voting_condition.envelopes_casted, (souls[addr].soul == 0x0));
+    //bool => election open
+    function get_quorum(address addr) public view returns(uint32, uint32, bool, bool){
+        return (voting_condition.quorum, voting_condition.envelopes_casted, (souls[addr].soul == 0x0), voting_condition.open);
     }
 
     function get_candidates() public view returns(address[] memory){
