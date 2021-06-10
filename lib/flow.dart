@@ -83,7 +83,7 @@ class _FlowScreenState extends State<FlowScreen> {
         if (value[3] == false){
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => Vote(isConfirming: false)),
+            MaterialPageRoute(builder: (context) => Winner()),
           )
         },
         setState(() {
@@ -92,9 +92,9 @@ class _FlowScreenState extends State<FlowScreen> {
               : "Quorum reached! (Total voters: "+value[0].toString()+")";
           quorum_circle = (value[1]/value[0]);
           if (value[1] == value[0]) {
+            step=2;
             if (value[2])
               step = 1;
-            step=2;
           } else {
             step = 0;
           }
