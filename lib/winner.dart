@@ -37,8 +37,9 @@ class _WinnerState extends State<Winner> {
         )
     ).show();
     Future.delayed(Duration(milliseconds:500), () => {
-      blockchain.queryView("get_candidates", []).then((value) => {
+      blockchain.queryView("get_results", []).then((value) => {
         Navigator.of(context).pop(),
+        print(value),
         setState(() {
           candidates = value[0];
         }),
@@ -54,7 +55,7 @@ class _WinnerState extends State<Winner> {
             title:"Error",
             desc: (error is NoSuchMethodError)
                 ? error.toString()
-                : blockchain.translateError(error)
+                : error.toString()//blockchain.translateError(error)
         ).show();
       })
     });

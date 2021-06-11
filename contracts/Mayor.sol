@@ -16,10 +16,12 @@ contract Mayor {
         uint32 envelopes_casted;
         uint32 envelopes_opened;
         bool open;
+        bool valid;
     }
 
     struct Candidate {
         uint32 deposit;
+        uint history_souls;
         uint souls;
         uint32 votes;
     }
@@ -48,6 +50,13 @@ contract Mayor {
         _;
     }
 
+    //only if is finished
+    modifier canGetResults() {
+        require(voting_condition.open == false, "The elections has not been declared yet");
+        require(voting_condition.valid == true, "The elections are invalid. Sayonara!");
+        _;
+    }
+
     // State attributes
 
     // Initialization variables
@@ -72,12 +81,11 @@ contract Mayor {
     constructor(address[] memory _candidates, address payable _escrow, uint32 _quorum) public {
         for (uint i=0; i<_candidates.length; i++){
             address key = _candidates[i];
-            candidates[key] = Candidate({deposit:0, souls: 0, votes: 0});
             candidate.push(key);
         }
 
         escrow = _escrow;
-        voting_condition = Conditions({quorum: _quorum, envelopes_casted: 0, envelopes_opened: 0, open: true});
+        voting_condition = Conditions({quorum: _quorum, envelopes_casted: 0, envelopes_opened: 0, open: true, valid: true});
     }
 
 
@@ -114,6 +122,7 @@ contract Mayor {
 
         //add souls to the correct vote counter
         candidates[_sign].souls += msg.value;
+        candidates[_sign].votes += 1;
 
         //update the number of opened envelopes
         voting_condition.envelopes_opened++;
@@ -160,6 +169,7 @@ contract Mayor {
             }
         }
         if (invalid) {
+            voting_condition.valid = false;
             uint allsouls = 0;
             for (uint i=0; i<candidate.length; i++){
                 uint c_souls = candidates[candidate[i]].souls;
@@ -171,6 +181,7 @@ contract Mayor {
             return;
         } else {
             uint w_souls = candidates[elected].souls;
+            candidates[elected].history_souls = w_souls;
             candidates[elected].souls = 0;
             payable(elected).transfer(w_souls);
             emit NewMayor(elected);
@@ -201,6 +212,16 @@ contract Mayor {
 
     function get_candidates() public view returns(address[] memory){
         return candidate;
+    }
+
+    function get_results() canGetResults public view returns(address[] memory, uint[] memory, uint[] memory){
+        uint[] memory all_souls = new uint[](candidate.length);
+        uint[] memory all_votes = new uint[](candidate.length);
+        for (uint i=0; i<candidate.length; i++){
+            all_souls[i] = candidates[candidate[i]].history_souls;
+            all_votes[i] = candidates[candidate[i]].votes;
+        }
+        return (candidate, all_souls, all_votes);
     }
 
 
