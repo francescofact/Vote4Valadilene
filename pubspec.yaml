@@ -36,6 +36,7 @@ dependencies:
   steps: 1.0.1
   progress_indicator_button: any
   confetti: any
+  qr_code_scanner: any
 
 
 dev_dependencies:

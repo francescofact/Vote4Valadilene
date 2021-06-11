@@ -7,22 +7,22 @@ import 'package:web3dart/web3dart.dart';
 
 class Blockchain {
 
-  final String contractAddr = "0x010FD84E0BA6e7A3F8f0863Cf6A6df4B5D615EC7";
+  String contractAddr;
   Client httpClient;
   Web3Client ethClient;
   Credentials creds;
   DeployedContract contract;
 
   Blockchain(){
+    SharedPreferences.getInstance().then((prefs) => {
+      creds = EthPrivateKey.fromHex(prefs.getString('key')),
+      contractAddr = prefs.getString("contract")
+    });
     httpClient = new Client();
     String apiUrl = "http://www.francescofattori.it:7545";
     ethClient = new Web3Client(apiUrl, httpClient);
     rootBundle.loadString("assets/abi.json").then((value) => {
       contract = loadContract(value)
-    });
-
-    SharedPreferences.getInstance().then((prefs) => {
-      creds = EthPrivateKey.fromHex(prefs.getString('key'))
     });
   }
 

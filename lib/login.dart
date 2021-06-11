@@ -12,7 +12,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
 
-  TextStyle style = TextStyle(fontFamily: 'Montserrat', fontSize: 20.0, color: Colors.white);
+  TextStyle style = TextStyle(fontSize: 20.0, color: Colors.white);
   final keyController = TextEditingController();
 
   Future<void> _login() async{
@@ -68,8 +68,7 @@ class _LoginScreenState extends State<LoginScreen> {
         onPressed: _login,
         child: Text("Login",
             textAlign: TextAlign.center,
-            style: style.copyWith(
-                color: Colors.white, fontWeight: FontWeight.bold)),
+            style: style),
       ),
     );
 
