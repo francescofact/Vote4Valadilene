@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:v4v/splash.dart';
 import 'package:v4v/utils.dart';
@@ -16,6 +17,17 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _login() async{
     String key = keyController.text;
+    if (key.length  != 64){
+      Alert(
+          context: context,
+          type: AlertType.error,
+          title:"Error in the Private key format",
+          style: AlertStyle(
+            animationType: AnimationType.grow
+          )
+      ).show();
+      return;
+    }
     SharedPreferences sp = await SharedPreferences.getInstance();
     sp.setString("key", key);
     //move to home

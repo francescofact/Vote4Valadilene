@@ -16,6 +16,7 @@ class _WinnerState extends State<Winner> {
 
   ConfettiController _controllerCenter;
   List<dynamic> candidates = [];
+  bool valid = true;
 
   @override
   void initState(){
@@ -23,6 +24,17 @@ class _WinnerState extends State<Winner> {
     WidgetsBinding.instance
         .addPostFrameCallback((_) => _updateCandidates());
     _controllerCenter = ConfettiController(duration: const Duration(seconds: 5));
+  }
+
+  String unitConverter(BigInt wei){
+    double _wei = wei.toDouble();
+    if (_wei >= 10000000000000000){
+      return (_wei/1000000000000000000).toString() + "ETH";
+    } else if (_wei >= 10000000){
+      return (_wei/1000000000).toString() + "GWEI";
+    } else {
+      return _wei.toString() + "WEI";
+    }
   }
 
   Future<void> _updateCandidates() async {
@@ -41,7 +53,7 @@ class _WinnerState extends State<Winner> {
         Navigator.of(context).pop(),
         print(value),
         setState(() {
-          candidates = value[0];
+          candidates = value;
         }),
         _controllerCenter.play(),
         Future.delayed(Duration(seconds:5),() => {
@@ -49,13 +61,18 @@ class _WinnerState extends State<Winner> {
         })
       }).catchError((error){
         Navigator.of(context).pop();
+        if (error.toString().contains("invalid")){
+          //invalid elections
+          valid = false;
+          error = "Elections are invalid (there was a tie). Sayonara!";
+        }
         Alert(
             context: context,
             type: AlertType.error,
             title:"Error",
             desc: (error is NoSuchMethodError)
                 ? error.toString()
-                : error.toString()//blockchain.translateError(error)
+                : blockchain.translateError(error)
         ).show();
       })
     });
@@ -134,7 +151,7 @@ class _WinnerState extends State<Winner> {
                             child: Stack(
                               children: [
                                 SvgPicture.string(
-                                  Jdenticon.toSvg("${candidates[index]}"),
+                                  Jdenticon.toSvg("${candidates[0][index].toString()}"),
                                   fit: BoxFit.fill,
                                   height: 50,
                                   width: 50,
@@ -155,10 +172,10 @@ class _WinnerState extends State<Winner> {
                             ),
                           ),
                           title: Text(
-                              "${candidates[index]}",
+                              "${candidates[0][index].toString()}",
                               style: TextStyle(color: Colors.black)
                           ),
-                          subtitle: Text('🪙 Souls: 3,5ETH  •  🗳 Votes: 12'),
+                          subtitle: Text('🪙 Souls: '+ unitConverter(candidates[1][index])+'  •  🗳 Votes: ' + candidates[2][index].toString()),
                         ),
                       );
                     },
