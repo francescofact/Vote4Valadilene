@@ -6,6 +6,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:v4v/blockchain.dart';
 import 'package:v4v/winnerModel.dart';
+import 'package:web3dart/json_rpc.dart';
 
 class Winner extends StatefulWidget {
   @override
@@ -17,7 +18,7 @@ class _WinnerState extends State<Winner> {
 
   ConfettiController _controllerCenter;
   List<WinnerModel> candidates = [new WinnerModel("Loading",BigInt.zero,BigInt.zero)];
-  bool valid = true;
+  bool valid;
 
   @override
   void initState(){
@@ -55,6 +56,7 @@ class _WinnerState extends State<Winner> {
               return b.souls.compareTo(a.souls);
             }
           });
+          valid = true;
         }),
         _controllerCenter.play(),
         Future.delayed(Duration(seconds:5),() => {
@@ -64,16 +66,18 @@ class _WinnerState extends State<Winner> {
         Navigator.of(context).pop();
         if (error.toString().contains("invalid")){
           //invalid elections
-          valid = false;
           error = "Elections are invalid (there was a tie). Sayonara!";
+          setState((){
+            valid = false;
+          });
         }
         Alert(
             context: context,
             type: AlertType.error,
             title:"Error",
-            desc: (error is NoSuchMethodError)
-                ? error.toString()
-                : blockchain.translateError(error)
+            desc: (error is RPCError)
+                ? blockchain.translateError(error)
+                : error.toString()
         ).show();
       })
     });
@@ -82,6 +86,145 @@ class _WinnerState extends State<Winner> {
 
   @override
   Widget build(BuildContext context) {
+    Widget body;
+    if (valid == null){
+      body = Center(
+        child: Container(
+          margin: const EdgeInsets.only(top: 30.0),
+          child: Column(
+            children: <Widget>[
+              Text("Loading...",
+                style: TextStyle(fontSize: 40),
+              )
+            ],
+          ),
+        ),
+      );
+    } else if (valid == false){
+      body = Center(
+          child: Container(
+            margin: const EdgeInsets.only(top: 30.0),
+            child: Column(
+              children: <Widget>[
+                Text("Invalid Elections",
+                  style: TextStyle(fontSize: 40),
+                ),
+                Text("There was a tie, so no new Mayor.\nSayonara!",
+                  textAlign: TextAlign.center
+                ),
+                Text("❌",
+                  style: TextStyle(fontSize: 400, color: Colors.red),
+                )
+              ],
+            ),
+          ),
+      );
+    } else if (valid == true){
+      body = Stack(
+        children: [
+          Center(
+            child: Container(
+              margin: const EdgeInsets.only(top: 30.0),
+              child: Column(
+                children: <Widget>[
+                  Card(
+                    color: Colors.yellow,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        ListTile(
+                          leading: Text(
+                              "👑",
+                              style: TextStyle(fontSize: 25)
+                          ),
+                          trailing: SvgPicture.string(
+                            Jdenticon.toSvg("${candidates[0].addr}"),
+                            fit: BoxFit.fill,
+                            height: 50,
+                            width: 50,
+                          ),
+                          title: Text("${candidates[0].addr}"),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                      height:15
+                  ),
+                  Text(
+                      "Ranked List",
+                      style: TextStyle(fontSize: 40)
+                  ),
+                  Container(
+                    margin: const EdgeInsets.only(top: 15.0, bottom: 15.0),
+                    child: ListView.builder(
+                      itemCount: candidates.length,
+                      scrollDirection: Axis.vertical,
+                      shrinkWrap: true,
+                      itemBuilder: (context, index) {
+                        return Card(
+                          color: Colors.white,
+                          child: ListTile(
+                            leading: ExcludeSemantics(
+                              child: Stack(
+                                  children: [
+                                    SvgPicture.string(
+                                      Jdenticon.toSvg("${candidates[index].addr}"),
+                                      fit: BoxFit.fill,
+                                      height: 50,
+                                      width: 50,
+                                    ),
+                                    Text(
+                                        (() {
+                                          switch(index){
+                                            case 0: return "🥇";
+                                            case 1: return "🥈";
+                                            case 2: return "🥉";
+                                          }
+                                          return "";
+                                        }()),
+                                        textAlign: TextAlign.right,
+                                        style: TextStyle(fontSize: 30)
+                                    ),
+                                  ]
+                              ),
+                            ),
+                            title: Text(
+                                "${candidates[index].addr}",
+                                style: TextStyle(color: Colors.black)
+                            ),
+                            subtitle: Text('🪙 Souls: '+ candidates[index].soulsUnit()+'  •  🗳 Votes: ' + candidates[index].votes.toString()),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Align(
+            alignment: Alignment.topCenter,
+            child: ConfettiWidget(
+              confettiController: _controllerCenter,
+              blastDirectionality: BlastDirectionality
+                  .explosive, // don't specify a direction, blast randomly
+              shouldLoop:
+              true, // start again as soon as the animation is finished
+              colors: const [
+                Colors.green,
+                Colors.blue,
+                Colors.pink,
+                Colors.orange,
+                Colors.purple
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
+    //render
     return Scaffold(
       appBar: PreferredSize(
         child: Container(
@@ -103,108 +246,7 @@ class _WinnerState extends State<Winner> {
         ),
         preferredSize: Size(MediaQuery.of(context).size.width, 45),
       ),
-      body: Stack(
-        children: [
-          Center(
-            child: Container(
-            margin: const EdgeInsets.only(top: 30.0),
-            child: Column(
-              children: <Widget>[
-                Card(
-                  color: Colors.yellow,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      ListTile(
-                        leading: Text(
-                            "👑",
-                            style: TextStyle(fontSize: 25)
-                        ),
-                        trailing: SvgPicture.string(
-                          Jdenticon.toSvg("${candidates[0].addr}"),
-                          fit: BoxFit.fill,
-                          height: 50,
-                          width: 50,
-                        ),
-                        title: Text("${candidates[0].addr}"),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(
-                    height:15
-                ),
-                Text(
-                    "Ranked List",
-                    style: TextStyle(fontSize: 40)
-                ),
-                Container(
-                  margin: const EdgeInsets.only(top: 15.0, bottom: 15.0),
-                  child: ListView.builder(
-                    itemCount: candidates.length,
-                    scrollDirection: Axis.vertical,
-                    shrinkWrap: true,
-                    itemBuilder: (context, index) {
-                      return Card(
-                        color: Colors.white,
-                        child: ListTile(
-                          leading: ExcludeSemantics(
-                            child: Stack(
-                              children: [
-                                SvgPicture.string(
-                                  Jdenticon.toSvg("${candidates[index].addr}"),
-                                  fit: BoxFit.fill,
-                                  height: 50,
-                                  width: 50,
-                                ),
-                                Text(
-                                    (() {
-                                      switch(index){
-                                        case 0: return "🥇";
-                                        case 1: return "🥈";
-                                        case 2: return "🥉";
-                                      }
-                                      return "";
-                                    }()),
-                                    textAlign: TextAlign.right,
-                                    style: TextStyle(fontSize: 30)
-                                ),
-                              ]
-                            ),
-                          ),
-                          title: Text(
-                              "${candidates[index].addr}",
-                              style: TextStyle(color: Colors.black)
-                          ),
-                          subtitle: Text('🪙 Souls: '+ candidates[index].soulsUnit()+'  •  🗳 Votes: ' + candidates[index].votes.toString()),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-          ),
-          Align(
-            alignment: Alignment.topCenter,
-            child: ConfettiWidget(
-              confettiController: _controllerCenter,
-              blastDirectionality: BlastDirectionality
-                  .explosive, // don't specify a direction, blast randomly
-              shouldLoop:
-              true, // start again as soon as the animation is finished
-              colors: const [
-                Colors.green,
-                Colors.blue,
-                Colors.pink,
-                Colors.orange,
-                Colors.purple
-              ],
-            ),
-          ),
-        ],
-      )
+      body: body
     );
 
   }
