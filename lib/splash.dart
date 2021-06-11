@@ -30,6 +30,7 @@ class _SplashScreenState extends State<SplashScreen> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String key = prefs.getString('key');
     String contract = prefs.getString('contract');
+    print([key,contract]);
     Future.delayed(Duration(seconds: 2), () async {
       if (contract == null){
         setState(() {
@@ -39,8 +40,7 @@ class _SplashScreenState extends State<SplashScreen> {
                 (Route<dynamic> route) => false,
           );
         });
-      }
-      if (key == null){
+      } else if (key == null){
         setState(() {
           Navigator.pushAndRemoveUntil(
             context,

@@ -22,7 +22,8 @@ class Blockchain {
     String apiUrl = "http://www.francescofattori.it:7545";
     ethClient = new Web3Client(apiUrl, httpClient);
     rootBundle.loadString("assets/abi.json").then((value) => {
-      contract = loadContract(value)
+      contract = loadContract(value),
+      print("Contract: " + contractAddr)
     });
   }
 
