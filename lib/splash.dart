@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:progress_indicator_button/progress_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:v4v/qr.dart';
 
 import 'blockchain.dart';
 import 'login.dart';
@@ -28,7 +29,17 @@ class _SplashScreenState extends State<SplashScreen> {
   void _checkKey(BuildContext context) async{
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String key = prefs.getString('key');
+    String contract = prefs.getString('contract');
     Future.delayed(Duration(seconds: 2), () async {
+      if (contract == null){
+        setState(() {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => QRScreen()),
+                (Route<dynamic> route) => false,
+          );
+        });
+      }
       if (key == null){
         setState(() {
           Navigator.pushAndRemoveUntil(

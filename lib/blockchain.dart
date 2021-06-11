@@ -74,7 +74,8 @@ class Blockchain {
 
   void logout(){
     SharedPreferences.getInstance().then((prefs) => {
-      prefs.remove('key')
+      prefs.remove('key'),
+      prefs.remove('contract')
     });
   }
 

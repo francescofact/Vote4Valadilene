@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:v4v/qr.dart';
 
 import 'splash.dart';
 
@@ -19,7 +18,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.indigo,
       ),
       debugShowCheckedModeBanner: false,
-      home: QRScreen()//SplashScreen(),
+      home: SplashScreen(),
     );
   }
 }

@@ -73,27 +73,39 @@ class _QRScreenState extends State<QRScreen> {
   Widget build(BuildContext context) {
 
     return Scaffold(
-      body: Column(
-        children: <Widget>[
-          Expanded(
-            flex: 5,
-            child: QRView(
-              key: qrKey,
-              onQRViewCreated: _onQRViewCreated,
+      body: Container(
+        decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.bottomCenter,
+              end: Alignment.topCenter,
+              colors: [
+                Color(0xFFd75dfd),
+                Color(0xFF675bd4),
+              ],
+            )
+        ),
+        child:Column(
+          children: <Widget>[
+            Expanded(
+              flex: 5,
+              child: QRView(
+                key: qrKey,
+                onQRViewCreated: _onQRViewCreated,
+              ),
             ),
-          ),
-          Expanded(
-            flex: 1,
-            child: Center(
-              child: (result != null)
-                  ? Text(
-                  'Barcode Type: ${describeEnum(result.format)}   Data: ${result.code}')
-                  : Text('Scan a code',
-                      style: TextStyle(fontSize: 40)),
-            ),
-          )
-        ],
-      ),
+            Expanded(
+              flex: 1,
+              child: Center(
+                child: (result != null)
+                    ? Text(
+                    'Barcode Type: ${describeEnum(result.format)}   Data: ${result.code}')
+                    : Text('Scan a code',
+                    style: TextStyle(fontSize: 40, color:Colors.white)),
+              ),
+            )
+          ],
+        ),
+      )
     );
   }
 }
