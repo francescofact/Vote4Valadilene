@@ -5,6 +5,7 @@ import 'package:jdenticon_dart/jdenticon_dart.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:v4v/blockchain.dart';
+import 'package:v4v/winnerModel.dart';
 
 class Winner extends StatefulWidget {
   @override
@@ -15,7 +16,7 @@ class _WinnerState extends State<Winner> {
   Blockchain blockchain = Blockchain();
 
   ConfettiController _controllerCenter;
-  List<dynamic> candidates = [];
+  List<WinnerModel> candidates = [new WinnerModel("Loading",BigInt.zero,BigInt.zero)];
   bool valid = true;
 
   @override
@@ -26,16 +27,6 @@ class _WinnerState extends State<Winner> {
     _controllerCenter = ConfettiController(duration: const Duration(seconds: 5));
   }
 
-  String unitConverter(BigInt wei){
-    double _wei = wei.toDouble();
-    if (_wei >= 10000000000000000){
-      return (_wei/1000000000000000000).toString() + "ETH";
-    } else if (_wei >= 10000000){
-      return (_wei/1000000000).toString() + "GWEI";
-    } else {
-      return _wei.toString() + "WEI";
-    }
-  }
 
   Future<void> _updateCandidates() async {
     Alert(
@@ -53,7 +44,17 @@ class _WinnerState extends State<Winner> {
         Navigator.of(context).pop(),
         print(value),
         setState(() {
-          candidates = value;
+          candidates = [];
+          for (int i=0; i<value[0].length;i++){
+            candidates.add(new WinnerModel(value[0][i].toString(), value[1][i], value[2][i]));
+          }
+          candidates.sort((a,b) {
+            if (a.souls == b.souls){
+              return b.votes.compareTo(a.votes);
+            } else {
+              return b.souls.compareTo(a.souls);
+            }
+          });
         }),
         _controllerCenter.play(),
         Future.delayed(Duration(seconds:5),() => {
@@ -120,12 +121,12 @@ class _WinnerState extends State<Winner> {
                             style: TextStyle(fontSize: 25)
                         ),
                         trailing: SvgPicture.string(
-                          Jdenticon.toSvg("1234"),
+                          Jdenticon.toSvg("${candidates[0].addr}"),
                           fit: BoxFit.fill,
                           height: 50,
                           width: 50,
                         ),
-                        title: Text('0xeAD2a43342D0198563931F90E9762A8A43F14fc4'),
+                        title: Text("${candidates[0].addr}"),
                       ),
                     ],
                   ),
@@ -151,7 +152,7 @@ class _WinnerState extends State<Winner> {
                             child: Stack(
                               children: [
                                 SvgPicture.string(
-                                  Jdenticon.toSvg("${candidates[0][index].toString()}"),
+                                  Jdenticon.toSvg("${candidates[index].addr}"),
                                   fit: BoxFit.fill,
                                   height: 50,
                                   width: 50,
@@ -172,10 +173,10 @@ class _WinnerState extends State<Winner> {
                             ),
                           ),
                           title: Text(
-                              "${candidates[0][index].toString()}",
+                              "${candidates[index].addr}",
                               style: TextStyle(color: Colors.black)
                           ),
-                          subtitle: Text('🪙 Souls: '+ unitConverter(candidates[1][index])+'  •  🗳 Votes: ' + candidates[2][index].toString()),
+                          subtitle: Text('🪙 Souls: '+ candidates[index].soulsUnit()+'  •  🗳 Votes: ' + candidates[index].votes.toString()),
                         ),
                       );
                     },
