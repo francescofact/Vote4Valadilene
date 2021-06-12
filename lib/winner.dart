@@ -5,6 +5,8 @@ import 'package:jdenticon_dart/jdenticon_dart.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:v4v/blockchain.dart';
+import 'package:v4v/splash.dart';
+import 'package:v4v/utils.dart';
 import 'package:v4v/winnerModel.dart';
 import 'package:web3dart/json_rpc.dart';
 
@@ -107,14 +109,31 @@ class _WinnerState extends State<Winner> {
             child: Column(
               children: <Widget>[
                 Text("Invalid Elections",
-                  style: TextStyle(fontSize: 40),
+                  style: TextStyle(fontSize: 40, color: Colors.white),
                 ),
                 Text("There was a tie, so no new Mayor.\nSayonara!",
                   textAlign: TextAlign.center
                 ),
-                Text("❌",
-                  style: TextStyle(fontSize: 400, color: Colors.red),
-                )
+                SizedBox(height: 170),
+                Image.asset("assets/sayonara.png",
+                    width: MediaQuery.of(context).size.width * 0.8
+                ),
+                SizedBox(height: 50),
+                ElevatedButton(
+                    onPressed: () => {
+                      blockchain.logout(),
+                      setState(() {
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          SlideRightRoute(
+                              page: SplashScreen()
+                          ),
+                          (Route<dynamic> route) => false,
+                        );
+                      })
+                    },
+                    child: Text("Log Out")
+                ),
               ],
             ),
           ),
@@ -226,6 +245,9 @@ class _WinnerState extends State<Winner> {
 
     //render
     return Scaffold(
+      backgroundColor: (valid == false)
+                        ? Colors.red
+                        : Colors.white,
       appBar: PreferredSize(
         child: Container(
           child: AppBar(
