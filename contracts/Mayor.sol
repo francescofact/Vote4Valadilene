@@ -235,7 +235,9 @@ contract Mayor {
         uint[] memory all_souls = new uint[](candidate.length);
         uint[] memory all_votes = new uint[](candidate.length);
         for (uint i=0; i<candidate.length; i++){
-            all_souls[i] = candidates[candidate[i]].history_souls;
+            all_souls[i] = candidates[candidate[i]].souls;
+            if (candidates[candidate[i]].souls == 0)
+                all_souls[i] = candidates[candidate[i]].history_souls;
             all_votes[i] = candidates[candidate[i]].votes;
             //TODO: tornare gli skippati
         }
