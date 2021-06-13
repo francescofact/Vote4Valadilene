@@ -20,7 +20,7 @@ contract Mayor {
     }
 
     struct Candidate {
-        uint32 deposit;
+        uint deposit;
         uint history_souls;
         uint souls;
         uint32 votes;
@@ -57,6 +57,13 @@ contract Mayor {
         _;
     }
 
+
+    modifier canDeposit() {
+        require(voting_condition.open == true, "The elections are over");
+        require(is_candidate(msg.sender) == true, "You are not a candidate");
+        _;
+    }
+
     // State attributes
 
     // Initialization variables
@@ -90,17 +97,21 @@ contract Mayor {
 
 
     /// @notice Store a received voting envelope
-    /// @param _sigil (uint) The secret sigil of a voter
-    /// @param _sign (address) The voting preference
-    /// @param _soul (uint) The soul associated to the vote
-    function cast_envelope(uint _sigil, address _sign, uint _soul) canVote public {
+    /// @param _envelope keccak256 hash of envelope
+    function cast_envelope(bytes32 _envelope) canVote public {
 
         if(envelopes[msg.sender] == 0x0)
             voting_condition.envelopes_casted++;
 
-        envelopes[msg.sender] = compute_envelope(_sigil, _sign, _soul);
+        envelopes[msg.sender] = _envelope;
         emit EnvelopeCast(msg.sender);
 
+    }
+
+
+    /// @notice Deposit some funds
+    function deposit() canDeposit public payable {
+        candidates[msg.sender].deposit += msg.value;
     }
 
 
@@ -148,6 +159,11 @@ contract Mayor {
         bool invalid = false;
         for (uint i=0; i<candidate.length; i++){
             Candidate memory cnd = candidates[candidate[i]];
+
+            //skip if no deposit
+            if (cnd.deposit == 0)
+                continue;
+
             if (cnd.souls > maxSouls){
                 //new first
                 elected = payable(candidate[i]);
@@ -206,8 +222,9 @@ contract Mayor {
     //uint32 => votes casted
     //bool => if passed addr has still to open his letter
     //bool => election open
-    function get_quorum(address addr) public view returns(uint32, uint32, bool, bool){
-        return (voting_condition.quorum, voting_condition.envelopes_casted, (souls[addr].soul == 0x0), voting_condition.open);
+    //bool => the addr is a candidate
+    function get_status(address addr) public view returns(uint32, uint32, bool, bool, bool){
+        return (voting_condition.quorum, voting_condition.envelopes_casted, (souls[addr].soul == 0x0), voting_condition.open, is_candidate(addr));
     }
 
     function get_candidates() public view returns(address[] memory){
@@ -220,6 +237,7 @@ contract Mayor {
         for (uint i=0; i<candidate.length; i++){
             all_souls[i] = candidates[candidate[i]].history_souls;
             all_votes[i] = candidates[candidate[i]].votes;
+            //TODO: tornare gli skippati
         }
         return (candidate, all_souls, all_votes);
     }
@@ -231,6 +249,16 @@ contract Mayor {
     /// @param _soul (uint) The soul associated to the vote
     function compute_envelope(uint _sigil, address _sign, uint _soul) private pure returns(bytes32) {
         return keccak256(abi.encode(_sigil, _sign, _soul));
+    }
+
+
+    //@notice check if an addr is a candidate
+    function is_candidate(address addr) private view returns(bool){
+        for (uint i=0; i<candidate.length; i++){
+            if (addr == candidate[i])
+                return true;
+        }
+        return false;
     }
 
 }
