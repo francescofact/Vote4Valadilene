@@ -20,6 +20,7 @@ class _QRScreenState extends State<QRScreen> {
   QRViewController controller;
   TextStyle style = TextStyle(fontFamily: 'Montserrat', fontSize: 20.0, color: Colors.white);
   final keyController = TextEditingController();
+  bool canMove = true;
 
   @override
   void reassemble() {
@@ -34,18 +35,26 @@ class _QRScreenState extends State<QRScreen> {
   void _onQRViewCreated(QRViewController controller){
     this.controller = controller;
     controller.scannedDataStream.listen((scanData) {
-      controller.pauseCamera();
-      setState(() async {
+      if (canMove == false)
+        return;
+      try {
+        controller.pauseCamera();
+      } catch(error) {
+        canMove = false;
+      }
+      setState(() {
         if (scanData.code.length == 42){
-          SharedPreferences sp = await SharedPreferences.getInstance();
-          sp.setString("contract", scanData.code);
-          Navigator.pushAndRemoveUntil(
-            context,
-            SlideRightRoute(
-                page: SplashScreen()
-            ),
-            (Route<dynamic> route) => false,
-          );
+          SharedPreferences.getInstance().then((sp) => {
+            sp.setString("contract", scanData.code),
+            Navigator.pushAndRemoveUntil(
+              context,
+              SlideRightRoute(
+                  page: SplashScreen()
+              ),
+              (Route<dynamic> route) => false,
+            )
+
+          });
         } else {
           Alert(
               context: context,
@@ -56,7 +65,8 @@ class _QRScreenState extends State<QRScreen> {
                   animationType: AnimationType.grow
               )
           ).show().then((value) => {
-            controller.resumeCamera()
+            controller.resumeCamera(),
+            canMove = true
           });
         }
       });
