@@ -121,7 +121,7 @@ class _VoteState extends State<Vote> {
     if (!checkSelection())
       return;
 
-    List<dynamic> args = [BigInt.parse(text_secret.text), candidates[_selected], BigInt.parse(text_souls.text)];
+    List<dynamic> args = [blockchain.encodeVote(BigInt.parse(text_secret.text), candidates[_selected], BigInt.parse(text_souls.text))];
     Alert(
         context: context,
         title:"Sending your vote...",

@@ -18,6 +18,7 @@ class _FlowScreenState extends State<FlowScreen> {
   String quorum_text = "Loading Quorum...";
   double quorum_circle = 0.0;
   double step = -1;
+  bool isMayor;
 
   @override
   void initState(){
@@ -67,6 +68,7 @@ class _FlowScreenState extends State<FlowScreen> {
   }
 
   Future<void> _updateQuorum() async {
+
     Alert(
         context: context,
         title:"Getting election status...",
@@ -78,7 +80,7 @@ class _FlowScreenState extends State<FlowScreen> {
         )
     ).show();
     Future.delayed(Duration(milliseconds:500), () async => {
-      blockchain.queryView("get_quorum", [await blockchain.myAddr()]).then((value) => {
+      blockchain.queryView("get_status", [await blockchain.myAddr()]).then((value) => {
         Navigator.of(context).pop(),
         if (value[3] == false){
           Navigator.push(
@@ -91,10 +93,15 @@ class _FlowScreenState extends State<FlowScreen> {
               ? (value[0]-value[1]).toString() + " votes to quorum (" + value[1].toString() + "/" + value[0].toString() + ")"
               : "Quorum reached! (Total voters: "+value[0].toString()+")";
           quorum_circle = (value[1]/value[0]);
-          if (value[1] == value[0]) {
-            step=2;
-            if (value[2])
+          print(value);
+          if (value[4]){
+            step = 2;
+          } else if (value[1] == value[0]) {
+            if (value[2] == true) {
               step = 1;
+            } else {
+              step = 2;
+            }
           } else {
             step = 0;
           }
@@ -120,6 +127,108 @@ class _FlowScreenState extends State<FlowScreen> {
 
   @override
   Widget build(BuildContext context) {
+    Widget body;
+    if (step == null){
+      body = Text("Mayor");
+    } else if (step == -1){
+      body = Text("Loading...");
+    } else {
+      body = Steps(
+        direction: Axis.vertical,
+        size: 20.0,
+        path: {'color': Colors.purple.shade100, 'width': 3.0},
+        steps: [
+          {
+            'color': Colors.white,
+            'background': getColor4Step(0),
+            'label': '1',
+            'content': Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  'Send your vote',
+                  style: TextStyle(fontSize: 22.0),
+                ),
+                Text(
+                  'Every vote you cast overwrites the previous one',
+                  style: TextStyle(fontSize: 12.0),
+                ),
+                SizedBox(height:20.0),
+                ElevatedButton(
+                    onPressed:
+                    (step==0)
+                        ? () => (
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => Vote(isConfirming: false)),
+                        )
+                    )
+                        : null,
+                    child: Text("Vote")
+                ),
+              ],
+            ),
+          },
+          {
+            'color': Colors.white,
+            'background': getColor4Step(1),
+            'label': '2',
+            'content': Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  'Confirm your vote',
+                  style: TextStyle(fontSize: 22.0),
+                ),
+                Text(
+                  'When the quorum is reached you can confirm your vote',
+                  style: TextStyle(fontSize: 12.0),
+                ),
+                SizedBox(height:20.0),
+                ElevatedButton(
+                  onPressed:
+                  (step==1)
+                      ? () => (
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => Vote(isConfirming: true)),
+                      )
+                  )
+                      : null,
+                  child: Text("Confirm"),
+                )
+              ],
+            )
+          },
+          {
+            'color': Colors.white,
+            'background': getColor4Step(2),
+            'label': '3',
+            'content': Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  'Declare the winner',
+                  style: TextStyle(fontSize: 22.0),
+                ),
+                Text(
+                  'Once everyone has confirmed their vote you can ask to declare the winner',
+                  style: TextStyle(fontSize: 12.0),
+                ),
+                SizedBox(height:20.0),
+                ElevatedButton(
+                  onPressed:
+                  (step==2)
+                      ? _mayorOrSayonara
+                      : null,
+                  child: Text("Ask to declare"),
+                )
+              ],
+            )
+          }
+        ],
+      );
+    }
     return Scaffold(
         appBar: PreferredSize(
           child: Container(
@@ -184,101 +293,7 @@ class _FlowScreenState extends State<FlowScreen> {
                   ),
                 ),
                 Expanded(
-                  child: Steps(
-                    direction: Axis.vertical,
-                    size: 20.0,
-                    path: {'color': Colors.purple.shade100, 'width': 3.0},
-                    steps: [
-                      {
-                        'color': Colors.white,
-                        'background': getColor4Step(0),
-                        'label': '1',
-                        'content': Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text(
-                              'Send your vote',
-                              style: TextStyle(fontSize: 22.0),
-                            ),
-                            Text(
-                              'Every vote you cast overwrites the previous one',
-                              style: TextStyle(fontSize: 12.0),
-                            ),
-                            SizedBox(height:20.0),
-                            ElevatedButton(
-                                onPressed:
-                                  (step==0)
-                                    ? () => (
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(builder: (context) => Vote(isConfirming: false)),
-                                      )
-                                    )
-                                  : null,
-                                child: Text("Vote")
-                            )
-                          ],
-                        ),
-                      },
-                      {
-                        'color': Colors.white,
-                        'background': getColor4Step(1),
-                        'label': '2',
-                        'content': Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text(
-                              'Confirm your vote',
-                              style: TextStyle(fontSize: 22.0),
-                            ),
-                            Text(
-                              'When the quorum is reached you can confirm your vote',
-                              style: TextStyle(fontSize: 12.0),
-                            ),
-                            SizedBox(height:20.0),
-                            ElevatedButton(
-                              onPressed:
-                              (step==1)
-                                  ? () => (
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(builder: (context) => Vote(isConfirming: true)),
-                                    )
-                                  )
-                                  : null,
-                              child: Text("Confirm"),
-                            )
-                          ],
-                        )
-                      },
-                      {
-                        'color': Colors.white,
-                        'background': getColor4Step(2),
-                        'label': '3',
-                        'content': Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text(
-                              'Declare the winner',
-                              style: TextStyle(fontSize: 22.0),
-                            ),
-                            Text(
-                              'Once everyone has confirmed their vote you can ask to declare the winner',
-                              style: TextStyle(fontSize: 12.0),
-                            ),
-                            SizedBox(height:20.0),
-                            ElevatedButton(
-                              onPressed:
-                              (step==2)
-                                  ? _mayorOrSayonara
-                                  : null,
-                              child: Text("Ask to declare"),
-                            )
-                          ],
-                        )
-                      }
-                    ],
-                  ),
+                  child: body
                 )
               ]
             )

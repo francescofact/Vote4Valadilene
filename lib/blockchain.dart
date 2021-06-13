@@ -1,9 +1,14 @@
 
+import 'dart:typed_data';
+
 import 'package:http/http.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:web3dart/crypto.dart';
 import 'package:web3dart/json_rpc.dart';
 import 'package:web3dart/web3dart.dart';
+import 'package:web3dart/src/utils/length_tracking_byte_sink.dart';
+import 'package:convert/convert.dart';
 
 class Blockchain {
 
@@ -82,5 +87,18 @@ class Blockchain {
 
   Future<EthereumAddress> myAddr() async{
     return creds.extractAddress();
+  }
+
+  Uint8List encodeVote(BigInt secret, EthereumAddress addr, BigInt wei) {
+    List<dynamic> parameters = [secret,addr, wei];
+    AbiType type = TupleType(
+      [UintType(),AddressType(), UintType()],
+    );
+    print(type);
+    final sink = LengthTrackingByteSink();
+
+    type.encode(parameters, sink);
+    return keccak256(sink.asBytes());
+
   }
 }
