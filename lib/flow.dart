@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:steps/steps.dart';
 import 'package:v4v/blockchain.dart';
@@ -67,8 +68,98 @@ class _FlowScreenState extends State<FlowScreen> {
     });
   }
 
-  Future<void> _updateQuorum() async {
+  Future<void> _deposit() async {
+    TextEditingController text_deposit = TextEditingController();
+    Alert(
+      context: context,
+      type: AlertType.info,
+      title: "Deposit some funds",
+      style: animation,
+      content: Column(
+        children: [
+          TextField(
+            controller: text_deposit,
+            decoration: InputDecoration(
+              labelText: 'Souls Amount',
+            ),
+            keyboardType: TextInputType.number,
+            inputFormatters: <TextInputFormatter>[
+              FilteringTextInputFormatter.digitsOnly
+            ],
+          ),
+          SizedBox(
+            height:10,
+          ),
+          Wrap(
+            children:[
+              InputChip(
+                  label: Text('5 ETH'),
+                  onSelected: (bool) => {text_deposit.text = "5000000000000000000"}
+              ),
+              SizedBox(width:8),
+              InputChip(
+                  label: Text('1 ETH'),
+                  onSelected: (bool) => {text_deposit.text = "1000000000000000000"}
+              ),
+              SizedBox(width:8),
+              InputChip(
+                  label: Text('0.5 ETH'),
+                  onSelected: (bool) => {text_deposit.text = "500000000000000000"}
+              ),
+              SizedBox(width:8),
+              InputChip(
+                  label: Text('0.01 ETH'),
+                  onSelected: (bool) => {text_deposit.text = "10000000000000000"}
+              ),
+            ]
+          ),
+        ],
+      ),
+      buttons: [
+        DialogButton(
+          onPressed: () => {
+            Navigator.pop(context),
+            Alert(
+              context: context,
+              title: "Sending funds...",
+              buttons: [],
+              style: AlertStyle(
+                animationType: AnimationType.grow,
+                isCloseButton: false,
+                isOverlayTapDismiss: false,
+              )
+            ).show(),
+            Future.delayed(Duration(milliseconds: 500), () => {
+              blockchain.query("deposit", [], wei:BigInt.parse(text_deposit.text)).then((value) => {
+                Navigator.pop(context),
+                Alert(
+                  context: context,
+                  type: AlertType.success,
+                  title: "Funds deposited!",
+                  style: animation
+                ).show()
+              }).catchError((error){
+                Navigator.of(context).pop();
+                Alert(
+                    context: context,
+                    type: AlertType.error,
+                    title:"Error",
+                    desc: blockchain.translateError(error),
+                    style: animation
+                ).show();
+              })
+            })
+          },
+          child: Text(
+            "Deposit",
+            style: TextStyle(color: Colors.white, fontSize: 20)
+          )
+        )
+      ]
+    ).show();
+  }
 
+  Future<void> _updateQuorum() async {
     Alert(
         context: context,
         title:"Getting election status...",
@@ -94,15 +185,20 @@ class _FlowScreenState extends State<FlowScreen> {
               : "Quorum reached! (Total voters: "+value[0].toString()+")";
           quorum_circle = (value[1]/value[0]);
           print(value);
-          if (value[4]){
+          if (value[4]){ //addr is a candidate
+            step = 3;
+            if (!value[3]) { //elections closed
+              step = 4;
+            }
+          } else if (value[3]){ //elections open
             step = 2;
-          } else if (value[1] == value[0]) {
-            if (value[2] == true) {
+          } else if (value[1] == value[0]) { //quorum reached
+            if (value[2]) { //envelope not open
               step = 1;
-            } else {
+            } else { //envelope opened
               step = 2;
             }
-          } else {
+          } else { //start
             step = 0;
           }
         })
@@ -128,8 +224,66 @@ class _FlowScreenState extends State<FlowScreen> {
   @override
   Widget build(BuildContext context) {
     Widget body;
-    if (step == null){
-      body = Text("Mayor");
+    if (step > 2){
+      body = Steps(
+        direction: Axis.vertical,
+        size: 20.0,
+        path: {'color': Colors.purple.shade100, 'width': 3.0},
+        steps: [
+          {
+            'color': Colors.white,
+            'background': getColor4Step(3),
+            'label': '1',
+            'content': Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  'Deposit some funds',
+                  style: TextStyle(fontSize: 22.0),
+                ),
+                Text(
+                  'You can deposit some souls to encourage people to vote you',
+                  style: TextStyle(fontSize: 12.0),
+                ),
+                SizedBox(height:20.0),
+                ElevatedButton(
+                  onPressed:
+                  (step==3)
+                      ? _deposit
+                      : null,
+                  child: Text("Deposit"),
+                )
+              ],
+            )
+          },
+          {
+            'color': Colors.white,
+            'background': getColor4Step(4),
+            'label': '2',
+            'content': Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text(
+                  'Declare the winner',
+                  style: TextStyle(fontSize: 22.0),
+                ),
+                Text(
+                  'Once everyone has confirmed their vote you can ask to declare the winner',
+                  style: TextStyle(fontSize: 12.0),
+                ),
+                SizedBox(height:20.0),
+                ElevatedButton(
+                  onPressed:
+                  (step==4)
+                      ? _mayorOrSayonara
+                      : null,
+                  child: Text("Ask to declare"),
+                )
+              ],
+            )
+          }
+        ],
+      );
     } else if (step == -1){
       body = Text("Loading...");
     } else {
