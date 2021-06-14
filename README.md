@@ -1,16 +1,19 @@
-# v4v
+# Vote4Valadilène
+![Banner](repo_banner.png "Banner")
 
-dapp
+A simple dApp for elections developed for the course "Peer-to-Peer Systems and Blockchain" @ University of Pisa.
 
-## Getting Started
+## Introduction
+Vote4Valadilene (v4v) is a decentralized app that use a smart contract and the Ethereum blockchain to manage the votes of Valadilène and elect its new Mayor.
+The app has been developed in Flutter to be deployable to multiple devices at the same time and it has been tested on iOS, Android and Web.
 
-This project is a starting point for a Flutter application.
+## How to Build and Run
+The application needs a RCP Server to comunicate with the blockchain so, one of the first tool we need is Ganache.
+Then we need to deploy the Smart Contract on our private blockchain. You can use truffle for this.
+Personalize the "migrations/2_deploy_contracts.js" file for your elections and run:
+```
+truffle migrate
+```
+After this command the smart contract will be deployed to the blockchain and its address will be visible through Ganache. Copy that address and convert it to a QR code.
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
-
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+To install the app it depends on the system you are using.
