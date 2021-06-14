@@ -182,131 +182,133 @@ class _VoteState extends State<Vote> {
       body: Center(
         child: Container(
           margin: const EdgeInsets.only(top: 30.0),
-          child: Column(
-            children: <Widget>[
-              Text(
-                (widget.isConfirming)
-                ? 'Confirm Previous Vote'
-                : 'Vote The New Major',
-                style: TextStyle(fontSize: 40),
-              ),
-              Container(
-                margin: const EdgeInsets.only(top: 15.0, bottom: 15.0),
-                child: ListView.builder(
-                  itemCount: candidates.length,
-                  scrollDirection: Axis.vertical,
-                  shrinkWrap: true,
-                  itemBuilder: (context, index) {
-                    return GestureDetector(
-                      onTap: (){
-                        setState(() {
-                          _selected = index;
-                        });
-                      },
-                      child: Card(
-                        color: (_selected == index)
-                            ? Colors.indigoAccent
-                            : Colors.white,
-                        child: ListTile(
-                          leading: ExcludeSemantics(
-                            child: SvgPicture.string(
-                              Jdenticon.toSvg("${candidates[index]}"),
-                              fit: BoxFit.fill,
-                              height: 50,
-                              width: 50,
+          child: SingleChildScrollView(
+            child: Column(
+              children: <Widget>[
+                Text(
+                  (widget.isConfirming)
+                      ? 'Confirm Previous Vote'
+                      : 'Vote The New Major',
+                  style: TextStyle(fontSize: 40),
+                ),
+                Container(
+                  margin: const EdgeInsets.only(top: 15.0, bottom: 15.0),
+                  child: ListView.builder(
+                    itemCount: candidates.length,
+                    scrollDirection: Axis.vertical,
+                    shrinkWrap: true,
+                    itemBuilder: (context, index) {
+                      return GestureDetector(
+                        onTap: (){
+                          setState(() {
+                            _selected = index;
+                          });
+                        },
+                        child: Card(
+                          color: (_selected == index)
+                              ? Colors.indigoAccent
+                              : Colors.white,
+                          child: ListTile(
+                            leading: ExcludeSemantics(
+                              child: SvgPicture.string(
+                                Jdenticon.toSvg("${candidates[index]}"),
+                                fit: BoxFit.fill,
+                                height: 50,
+                                width: 50,
+                              ),
                             ),
-                          ),
-                          title: Text(
-                              "${candidates[index]}",
-                              style: TextStyle(color: (_selected == index)
-                                  ? Colors.white
-                                  : Colors.black,
-                              )
+                            title: Text(
+                                "${candidates[index]}",
+                                style: TextStyle(color: (_selected == index)
+                                    ? Colors.white
+                                    : Colors.black,
+                                )
+                            ),
                           ),
                         ),
-                      ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
-              ),
-              Text(
-                  "How many souls?"
-              ),
-              SizedBox(
-                height:140,
-                width: MediaQuery.of(context).size.width * 0.8,
-                child: Column(
-                    children: [
-                      TextField(
-                        decoration: new InputDecoration(hintText: "Souls in Wei"),
-                        keyboardType: TextInputType.number,
-                        controller: text_souls,
-                        inputFormatters: <TextInputFormatter>[
-                          FilteringTextInputFormatter.digitsOnly
-                        ],
-                      ),
-                      SizedBox(
-                        height:10,
-                      ),
-                      Wrap(
-                          children:[
-                            InputChip(
-                                label: Text('5 ETH'),
-                                onSelected: (bool) => {text_souls.text = "5000000000000000000"}
-                            ),
-                            SizedBox(width:8),
-                            InputChip(
-                                label: Text('1 ETH'),
-                                onSelected: (bool) => {text_souls.text = "1000000000000000000"}
-                            ),
-                            SizedBox(width:8),
-                            InputChip(
-                                label: Text('0.5 ETH'),
-                                onSelected: (bool) => {text_souls.text = "500000000000000000"}
-                            ),
-                            SizedBox(width:8),
-                            InputChip(
-                                label: Text('0.01 ETH'),
-                                onSelected: (bool) => {text_souls.text = "10000000000000000"}
-                            ),
-                          ]
-                      ),
-                    ]
+                Text(
+                    "How many souls?"
                 ),
-              ),
-              Text(
-                  (widget.isConfirming)
-                  ? "Enter your secret"
-                  : "Create your secret"
-              ),
-              SizedBox(
-                height:40,
-                width: MediaQuery.of(context).size.width * 0.8,
-                child: TextField(
-                  decoration: new InputDecoration(hintText: "Secret in numbers"),
-                  keyboardType: TextInputType.number,
-                  controller: text_secret,
-                  inputFormatters: <TextInputFormatter>[
-                    FilteringTextInputFormatter.digitsOnly
-                  ],
+                SizedBox(
+                  height:140,
+                  width: MediaQuery.of(context).size.width * 0.8,
+                  child: Column(
+                      children: [
+                        TextField(
+                          decoration: new InputDecoration(hintText: "Souls in Wei"),
+                          keyboardType: TextInputType.number,
+                          controller: text_souls,
+                          inputFormatters: <TextInputFormatter>[
+                            FilteringTextInputFormatter.digitsOnly
+                          ],
+                        ),
+                        SizedBox(
+                          height:10,
+                        ),
+                        Wrap(
+                            children:[
+                              InputChip(
+                                  label: Text('5 ETH'),
+                                  onSelected: (bool) => {text_souls.text = "5000000000000000000"}
+                              ),
+                              SizedBox(width:8),
+                              InputChip(
+                                  label: Text('1 ETH'),
+                                  onSelected: (bool) => {text_souls.text = "1000000000000000000"}
+                              ),
+                              SizedBox(width:8),
+                              InputChip(
+                                  label: Text('0.5 ETH'),
+                                  onSelected: (bool) => {text_souls.text = "500000000000000000"}
+                              ),
+                              SizedBox(width:8),
+                              InputChip(
+                                  label: Text('0.01 ETH'),
+                                  onSelected: (bool) => {text_souls.text = "10000000000000000"}
+                              ),
+                            ]
+                        ),
+                      ]
+                  ),
                 ),
-              ),
-              SizedBox(
-                height: 30,
-              ),
-              ElevatedButton(
-                  onPressed:
+                Text(
                     (widget.isConfirming)
-                      ? _openVote
-                      : _sendVote
-                  ,
-                  child: Text(
-                      (widget.isConfirming)
-                      ? "Confirm Vote"
-                      : "Send Vote"
-                  )
-              ),
-            ],
+                        ? "Enter your secret"
+                        : "Create your secret"
+                ),
+                SizedBox(
+                  height:40,
+                  width: MediaQuery.of(context).size.width * 0.8,
+                  child: TextField(
+                    decoration: new InputDecoration(hintText: "Secret in numbers"),
+                    keyboardType: TextInputType.number,
+                    controller: text_secret,
+                    inputFormatters: <TextInputFormatter>[
+                      FilteringTextInputFormatter.digitsOnly
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  height: 30,
+                ),
+                ElevatedButton(
+                    onPressed:
+                    (widget.isConfirming)
+                        ? _openVote
+                        : _sendVote
+                    ,
+                    child: Text(
+                        (widget.isConfirming)
+                            ? "Confirm Vote"
+                            : "Send Vote"
+                    )
+                ),
+              ],
+            ),
           ),
         ),
       ),
