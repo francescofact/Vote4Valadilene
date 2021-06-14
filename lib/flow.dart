@@ -190,7 +190,7 @@ class _FlowScreenState extends State<FlowScreen> {
             if (!value[3]) { //elections closed
               step = 4;
             }
-          } else if (value[3]){ //elections open
+          } else if (!value[3]){ //elections open
             step = 2;
           } else if (value[1] == value[0]) { //quorum reached
             if (value[2]) { //envelope not open
