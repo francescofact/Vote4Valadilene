@@ -189,28 +189,44 @@ contract Mayor {
             uint allsouls = 0;
             for (uint i=0; i<candidate.length; i++){
                 uint c_souls = candidates[candidate[i]].souls;
+                uint c_deposit = candidates[candidate[i]].deposit;
                 candidates[candidate[i]].souls = 0; //protection for reentrancy
-                allsouls += c_souls;
+                candidates[candidate[i]].souls = 0; //protection for reentrancy
+                allsouls += (c_souls + c_deposit);
             }
             escrow.transfer(allsouls);
             emit Sayonara(escrow);
             return;
         } else {
+            // primary refunds
             uint w_souls = candidates[elected].souls;
             candidates[elected].history_souls = w_souls;
             candidates[elected].souls = 0;
             payable(elected).transfer(w_souls);
+            // transfer from losers to winner
+            uint to_winner = 0;
+            for (uint i=0; candidate.length;i++){
+                if (candidate[i] != elected){
+                    uint tmp = candidates[candidate[i]].deposit;
+                    candidates[candidate[i]].deposit = 0;
+                    to_winner += tmp;
+                }
+            }
+            elected.transfer(to_winner);
+            //refund or transfer to people
+            uint to_crowd = candidates[elected].deposit / candidates[elected].votes;
+            for (uint i=0; i<voters.length; i++){
+                address payable voter = payable(voters[i]);
+                if (souls[voters[i]].sign != elected){
+                    //refund
+                    voter.transfer(souls[voter].soul);
+                } else {
+                    //winner!
+                    voter.transfer(to_crowd);
+                }
+            }
             emit NewMayor(elected);
         }
-
-        //refund the losers
-        for (uint i=0; i<voters.length; i++){
-            if (souls[voters[i]].sign != elected){
-                address payable voter = payable(voters[i]);
-                voter.transfer(souls[voter].soul);
-            }
-        }
-
     }
 
     //This API is used by the FlowScreen to display the proper step
