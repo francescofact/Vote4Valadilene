@@ -228,7 +228,12 @@ contract Mayor {
     }
 
     function get_candidates() public view returns(address[] memory){
-        return candidate;
+        address[] memory _candidates = new address[](candidate.length);
+        for (uint i=0; i<candidate.length; i++){
+            if (candidates[candidate[i]].deposit > 0)
+                _candidates[i] = candidate[i];
+        }
+        return _candidates;
     }
 
     function get_results() canGetResults public view returns(address[] memory, uint[] memory, uint[] memory){
@@ -239,7 +244,6 @@ contract Mayor {
             if (candidates[candidate[i]].souls == 0)
                 all_souls[i] = candidates[candidate[i]].history_souls;
             all_votes[i] = candidates[candidate[i]].votes;
-            //TODO: tornare gli skippati
         }
         return (candidate, all_souls, all_votes);
     }
