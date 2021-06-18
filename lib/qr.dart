@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
@@ -73,6 +72,37 @@ class _QRScreenState extends State<QRScreen> {
     });
   }
 
+  void _manualInput(){
+    TextEditingController text_addr = TextEditingController();
+
+    Alert(
+      context: context,
+      title:"Enter SmartContract Address",
+      content: Column(
+        children: [
+          TextField(
+            controller: text_addr,
+            decoration: InputDecoration(
+              labelText: 'Address',
+            ),
+          ),
+        ],
+      ),
+        buttons: [
+          DialogButton(
+              onPressed: () => {
+                Navigator.pop(context),
+
+              },
+              child: Text(
+                  "Connect",
+                  style: TextStyle(color: Colors.white, fontSize: 20)
+              )
+          )
+        ]
+    );
+  }
+
   @override
   void dispose() {
     controller?.dispose();
@@ -106,11 +136,22 @@ class _QRScreenState extends State<QRScreen> {
             Expanded(
               flex: 1,
               child: Center(
-                child: (result != null)
-                    ? Text(
-                    'Barcode Type: ${describeEnum(result.format)}   Data: ${result.code}')
-                    : Text('Scan a code',
-                    style: TextStyle(fontSize: 40, color:Colors.white)),
+                child: Column(
+                  children: [
+                    Container(
+                      child:  Text('Scan a code',
+                          style: TextStyle(fontSize: 40, color:Colors.white)),
+                      height: 50,
+                    ),
+                    Container(
+                      child:  ElevatedButton(
+                        onPressed: _manualInput,
+                        child:Text("Enter Manually")
+                      ),
+                      height: 25,
+                    )
+                  ],
+                ),
               ),
             )
           ],
