@@ -205,14 +205,14 @@ contract Mayor {
             payable(elected).transfer(w_souls);
             // transfer from losers to winner
             uint to_winner = 0;
-            for (uint i=0; candidate.length;i++){
+            for (uint i=0; i<candidate.length;i++){
                 if (candidate[i] != elected){
                     uint tmp = candidates[candidate[i]].deposit;
                     candidates[candidate[i]].deposit = 0;
                     to_winner += tmp;
                 }
             }
-            elected.transfer(to_winner);
+            payable(elected).transfer(to_winner);
             //refund or transfer to people
             uint to_crowd = candidates[elected].deposit / candidates[elected].votes;
             for (uint i=0; i<voters.length; i++){
