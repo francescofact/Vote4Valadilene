@@ -198,7 +198,7 @@ class _VoteState extends State<Vote> {
                   style: TextStyle(fontSize: 40),
                 ),
                 Container(
-                  margin: const EdgeInsets.only(top: 15.0, bottom: 15.0),
+                  margin: const EdgeInsets.only(top: 15.0, bottom: 0.0),
                   child: ListView.builder(
                     itemCount: candidates.length,
                     scrollDirection: Axis.vertical,
@@ -237,7 +237,7 @@ class _VoteState extends State<Vote> {
                   ),
                 ),
                 Container(
-                  margin: const EdgeInsets.only(top: 15.0, bottom: 15.0),
+                  margin: const EdgeInsets.only(top: 0.0, bottom: 15.0),
                   child: ListView.builder(
                     itemCount: candidates_locked.length,
                     scrollDirection: Axis.vertical,
