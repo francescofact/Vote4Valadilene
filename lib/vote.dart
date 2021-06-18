@@ -23,6 +23,7 @@ class _VoteState extends State<Vote> {
   final text_secret = TextEditingController();
 
   List<dynamic> candidates = [];
+  List<dynamic> candidates_locked = [];
   int _selected = -1;
 
   @override
@@ -47,7 +48,10 @@ class _VoteState extends State<Vote> {
       blockchain.queryView("get_candidates", []).then((value) => {
         Navigator.of(context).pop(),
         setState(() {
-          candidates = value[0];
+          value[0][0].remove("0x0000000000000000000000000000000000000000");
+          value[0][1].remove("0x0000000000000000000000000000000000000000");
+          candidates = value[0][0];
+          candidates_locked = value[0][1];
         })
       }).catchError((error){
         Navigator.of(context).pop();
