@@ -5,6 +5,7 @@ import 'package:jdenticon_dart/jdenticon_dart.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:v4v/blockchain.dart';
+import 'package:web3dart/json_rpc.dart';
 
 class Vote extends StatefulWidget {
   final bool isConfirming;
@@ -48,10 +49,11 @@ class _VoteState extends State<Vote> {
       blockchain.queryView("get_candidates", []).then((value) => {
         Navigator.of(context).pop(),
         setState(() {
-          value[0][0].remove("0x0000000000000000000000000000000000000000");
-          value[0][1].remove("0x0000000000000000000000000000000000000000");
-          candidates = value[0][0];
-          candidates_locked = value[0][1];
+          print(value);
+          value[0].removeWhere((item) => item.toString() == "0x0000000000000000000000000000000000000000");
+          value[1].removeWhere((item) => item.toString() == "0x0000000000000000000000000000000000000000");
+          candidates = value[0];
+          candidates_locked = value[1];
         })
       }).catchError((error){
         Navigator.of(context).pop();
@@ -59,9 +61,9 @@ class _VoteState extends State<Vote> {
             context: context,
             type: AlertType.error,
             title:"Error",
-            desc: (error is NoSuchMethodError)
-                ? error.toString()
-                : blockchain.translateError(error)
+            desc: (error is RPCError)
+                ? blockchain.translateError(error)
+                : "?"+error.toString()
         ).show();
       })
     });
@@ -228,6 +230,36 @@ class _VoteState extends State<Vote> {
                                     : Colors.black,
                                 )
                             ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                Container(
+                  margin: const EdgeInsets.only(top: 15.0, bottom: 15.0),
+                  child: ListView.builder(
+                    itemCount: candidates_locked.length,
+                    scrollDirection: Axis.vertical,
+                    shrinkWrap: true,
+                    itemBuilder: (context, index) {
+                      return Card(
+                        color: Colors.grey.shade200,
+                        child: ListTile(
+                          leading: ExcludeSemantics(
+                            child: SvgPicture.string(
+                              Jdenticon.toSvg("${candidates_locked[index]}"),
+                              fit: BoxFit.fill,
+                              height: 50,
+                              width: 50,
+                            ),
+                          ),
+                          title: Text(
+                              "${candidates_locked[index]}",
+                              style: TextStyle(color: Colors.black)
+                          ),
+                          subtitle: Text(
+                              'The candidate has not deposited yet'
                           ),
                         ),
                       );
