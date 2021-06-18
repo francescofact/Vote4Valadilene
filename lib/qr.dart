@@ -31,6 +31,36 @@ class _QRScreenState extends State<QRScreen> {
     }
   }
 
+  bool process(String addr){
+    setState(() {
+      if (addr.length == 42){
+        SharedPreferences.getInstance().then((sp) => {
+          sp.setString("contract", addr),
+          Navigator.pushAndRemoveUntil(
+            context,
+            SlideRightRoute(
+                page: SplashScreen()
+            ),
+                (Route<dynamic> route) => false,
+          )
+        });
+      } else {
+        Alert(
+            context: context,
+            type: AlertType.error,
+            title:"Address not valid",
+            content: Text("Insert or scan a valid contract"),
+            style: AlertStyle(
+                animationType: AnimationType.grow
+            )
+        ).show().then((value) => {
+          controller.resumeCamera(),
+          canMove = true
+        });
+      }
+    });
+  }
+
   void _onQRViewCreated(QRViewController controller){
     this.controller = controller;
     controller.scannedDataStream.listen((scanData) {
@@ -41,34 +71,7 @@ class _QRScreenState extends State<QRScreen> {
       } catch(error) {
         canMove = false;
       }
-      setState(() {
-        if (scanData.code.length == 42){
-          SharedPreferences.getInstance().then((sp) => {
-            sp.setString("contract", scanData.code),
-            Navigator.pushAndRemoveUntil(
-              context,
-              SlideRightRoute(
-                  page: SplashScreen()
-              ),
-              (Route<dynamic> route) => false,
-            )
-
-          });
-        } else {
-          Alert(
-              context: context,
-              type: AlertType.error,
-              title:"Scan a Vote QR Code",
-              content: Text("The QR Code scanned is not a valid Vote4Valadilene QR Code"),
-              style: AlertStyle(
-                  animationType: AnimationType.grow
-              )
-          ).show().then((value) => {
-            controller.resumeCamera(),
-            canMove = true
-          });
-        }
-      });
+      process(scanData.code);
     });
   }
 
@@ -91,8 +94,9 @@ class _QRScreenState extends State<QRScreen> {
         buttons: [
           DialogButton(
               onPressed: () => {
+                canMove == false,
                 Navigator.pop(context),
-
+                process(text_addr.text),
               },
               child: Text(
                   "Connect",
@@ -100,7 +104,7 @@ class _QRScreenState extends State<QRScreen> {
               )
           )
         ]
-    );
+    ).show();
   }
 
   @override
