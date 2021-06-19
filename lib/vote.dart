@@ -25,6 +25,7 @@ class _VoteState extends State<Vote> {
 
   List<dynamic> candidates = [];
   List<dynamic> candidates_locked = [];
+  List<dynamic> deposited = [];
   int _selected = -1;
 
   @override
@@ -49,11 +50,12 @@ class _VoteState extends State<Vote> {
       blockchain.queryView("get_candidates", []).then((value) => {
         Navigator.of(context).pop(),
         setState(() {
-          print(value);
           value[0].removeWhere((item) => item.toString() == "0x0000000000000000000000000000000000000000");
           value[1].removeWhere((item) => item.toString() == "0x0000000000000000000000000000000000000000");
+          value[2].removeWhere((item) => item == BigInt.zero);
           candidates = value[0];
           candidates_locked = value[1];
+          deposited = value[2];
         })
       }).catchError((error){
         Navigator.of(context).pop();
@@ -229,6 +231,9 @@ class _VoteState extends State<Vote> {
                                     ? Colors.white
                                     : Colors.black,
                                 )
+                            ),
+                            subtitle: Text(
+                                'Deposited: ' + blockchain.soulsUnit(deposited[index])
                             ),
                           ),
                         ),
