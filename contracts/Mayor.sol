@@ -243,17 +243,19 @@ contract Mayor {
         return (voting_condition.quorum, voting_condition.envelopes_casted, (souls[addr].soul == 0x0), voting_condition.open, is_candidate(addr));
     }
 
-    function get_candidates() public view returns(address[] memory, address[] memory){
+    function get_candidates() public view returns(address[] memory, address[] memory, uint[] memory){
         address[] memory _candidates = new address[](candidate.length);
         address[] memory _candidates2 = new address[](candidate.length);
+        uint[] memory deposited = new uint[](candidate.length);
         for (uint i=0; i<candidate.length; i++){
             if (candidates[candidate[i]].deposit > 0){
                 _candidates[i] = candidate[i];
+                deposited[i] = candidates[candidate[i]].deposit;
             } else {
                 _candidates2[i] = candidate[i];
             }
         }
-        return (_candidates, _candidates2);
+        return (_candidates, _candidates2, deposited);
     }
 
     function get_results() canGetResults public view returns(address[] memory, uint[] memory, uint[] memory){
