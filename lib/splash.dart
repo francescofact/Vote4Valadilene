@@ -163,6 +163,7 @@ class _NoBlockChainScreenState extends State<NoBlockChainScreen> {
                 Text(
                   "No Blockchain connection",
                   style: TextStyle(fontSize: 40, color: Colors.white),
+                  textAlign: TextAlign.center,
                 ),
                 SizedBox(height: 25.0),
                 Container(
